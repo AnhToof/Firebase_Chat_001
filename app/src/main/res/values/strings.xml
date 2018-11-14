@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Firebase_Chat_001</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="hint_full_name">Full Name</string>
+    <string name="hint_phone">Phone</string>
 </resources>
