@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Firebase_Chat_001</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Mật Khẩu</string>
+    <string name="sign_in">Đăng Nhập</string>
+    <string name="sign_up">Đăng Ký</string>
+    <string name="hint_full_name">Họ và Tên</string>
+    <string name="hint_phone">Số Điện Thoại</string>
+</resources>
