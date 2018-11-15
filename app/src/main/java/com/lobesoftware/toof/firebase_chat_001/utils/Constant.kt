@@ -1,0 +1,13 @@
+package com.lobesoftware.toof.firebase_chat_001.utils
+
+object Constant {
+    const val ENTER_SPACE_FORMAT = "\n"
+    const val NUMBER_FORMAT = "[0-9]"
+    const val LOWER_CASE_FORMAT = "[a-z]"
+    const val UPPER_CASE_FORMAT = "[A-Z]"
+    const val SPECIAL_CHAR_FORMAT = "[!@#%^]"
+    const val ALL_SPECIAL_CHAR_FORMAT = "[!@#$%^&*]"
+    const val EMAIL_FORMAT = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+    const val LENGTH_PASSWORD_FORMAT = 8
+    const val MAX_LENGTH_NAME_FORMAT = 255
+}
