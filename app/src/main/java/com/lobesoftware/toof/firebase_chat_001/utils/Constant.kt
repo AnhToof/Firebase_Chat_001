@@ -10,4 +10,10 @@ object Constant {
     const val EMAIL_FORMAT = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
     const val LENGTH_PASSWORD_FORMAT = 8
     const val MAX_LENGTH_NAME_FORMAT = 255
+
+    object KeyDatabase {
+        object User {
+            const val USER = "users"
+        }
+    }
 }

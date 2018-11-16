@@ -17,4 +17,7 @@
     <string name="more_than_255_char">- Nhiều hơn 255 ký tự.</string>
     <string name="contain_special_char">- Chứa ký tự đặc biệt.</string>
     <string name="contain_invalid_word">- Chứa ký tự không hợp lệ.</string>
+    <string name="msg_register_successfully">Đăng ký thành công!</string>
+    <string name="msg_logging_in">Đang đăng nhập…</string>
+    <string name="msg_registering">Đang đăng ký…</string>
 </resources>

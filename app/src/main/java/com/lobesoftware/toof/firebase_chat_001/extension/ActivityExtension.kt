@@ -4,10 +4,14 @@ import android.content.Intent
 import android.support.annotation.IdRes
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 
-fun AppCompatActivity.startActivity(intent: Intent, flags: Int? = null) {
+fun AppCompatActivity.startActivity(intent: Intent, flags: Int? = null, removeItself: Boolean = false) {
     flags?.let { intent.flags = it }
     startActivity(intent)
+    if (removeItself){
+        finish()
+    }
 }
 
 fun AppCompatActivity.replaceFragment(
@@ -23,4 +27,8 @@ fun AppCompatActivity.replaceFragment(
     transaction.replace(containerId, fragment, tag)
     transaction.commitAllowingStateLoss()
     fragmentManager.executePendingTransactions()
+}
+
+fun AppCompatActivity.toast(msg: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, msg, duration).show()
 }

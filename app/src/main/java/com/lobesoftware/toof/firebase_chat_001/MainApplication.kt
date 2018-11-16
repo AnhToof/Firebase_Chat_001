@@ -2,7 +2,7 @@ package com.lobesoftware.toof.firebase_chat_001
 
 import android.app.Application
 
-class MainApplication : Application() {
+open class MainApplication : Application() {
     lateinit var mAppComponent: AppComponent
 
     override fun onCreate() {

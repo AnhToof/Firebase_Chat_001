@@ -16,4 +16,7 @@
     <string name="more_than_255_char">- More than 255 characters.</string>
     <string name="contain_special_char">- Contain special characters.</string>
     <string name="contain_invalid_word">- Contain invalid characters.</string>
+    <string name="msg_register_successfully">Register successfully!</string>
+    <string name="msg_logging_in">Logging in...</string>
+    <string name="msg_registering">Registering...</string>
 </resources>
