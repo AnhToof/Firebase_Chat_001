@@ -1,5 +1,6 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.authentication
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -7,10 +8,8 @@ import android.view.View
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
-import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.login.LoginFragment
-import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import kotlinx.android.synthetic.main.activity_authentication.*
 import javax.inject.Inject
 
@@ -19,6 +18,7 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View 
     @Inject
     internal lateinit var mUserRepository: UserRepositoryImpl
     private lateinit var mPresenter: AuthenticationPresenter
+    private lateinit var mNavigator: AuthenticationNavigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,10 +33,12 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View 
             setView(this@AuthenticationActivity)
             checkLoggedState()
         }
+
+        mNavigator = AuthenticationNavigatorImpl(this)
     }
 
     override fun onLogged() {
-        goToMainScreen()
+        mNavigator.goToMainScreen()
     }
 
     override fun onUnLog() {
@@ -61,8 +63,9 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View 
         mPresenter.onDestroy()
     }
 
-    private fun goToMainScreen() {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent, removeItself = true)
+    companion object {
+        fun getInstance(context: Context): Intent {
+            return Intent(context, AuthenticationActivity::class.java)
+        }
     }
 }

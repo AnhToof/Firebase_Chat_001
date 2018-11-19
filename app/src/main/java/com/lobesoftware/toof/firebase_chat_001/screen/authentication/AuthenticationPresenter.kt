@@ -20,10 +20,11 @@ class AuthenticationPresenter : AuthenticationContract.Presenter {
                 .doAfterTerminate {
                     view.hideDialog()
                 }
-                .subscribe(
-                    { view.onLogged() },
-                    { view.onUnLog() }
-                )
+                .subscribe({
+                    view.onLogged()
+                }, {
+                    view.onUnLog()
+                })
             mCompositeDisposable.add(disposable)
         }
     }

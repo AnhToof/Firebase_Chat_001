@@ -2,22 +2,17 @@ package com.lobesoftware.toof.firebase_chat_001.screen.authentication.login
 
 import android.app.ProgressDialog
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
-import com.lobesoftware.toof.firebase_chat_001.data.model.User
-import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
-import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
-import com.lobesoftware.toof.firebase_chat_001.screen.authentication.register.RegisterFragment
-import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.validator.Validator
 import kotlinx.android.synthetic.main.fragment_login.view.*
 import javax.inject.Inject
@@ -31,13 +26,14 @@ class LoginFragment : Fragment(), LoginContract.View {
     private lateinit var mPresenter: LoginPresenter
     private lateinit var mView: View
     private lateinit var mProgressDialog: ProgressDialog
+    private lateinit var mNavigator: LoginNavigator
 
     override fun onAttach(context: Context?) {
+        super.onAttach(context)
         val app = activity?.application
         if (app is MainApplication) {
             app.mAppComponent.inject(this@LoginFragment)
         }
-        super.onAttach(context)
     }
 
     override fun onCreateView(
@@ -53,6 +49,10 @@ class LoginFragment : Fragment(), LoginContract.View {
             setValidator(mValidator)
             setUserRepository(mUserRepository)
             setView(this@LoginFragment)
+        }
+
+        if (activity is AuthenticationActivity) {
+            mNavigator = LoginNavigatorImpl(activity as AppCompatActivity)
         }
 
         handleEvents()
@@ -85,8 +85,8 @@ class LoginFragment : Fragment(), LoginContract.View {
         mPresenter.onDestroy()
     }
 
-    override fun onLoginSuccess(user: User) {
-        goToMainScreen()
+    override fun onLoginSuccess() {
+        mNavigator.goToMainScreen()
     }
 
     override fun onLoginFail(error: String) {
@@ -104,23 +104,12 @@ class LoginFragment : Fragment(), LoginContract.View {
         }
 
         mView.button_sign_up.setOnClickListener {
-            (activity as AuthenticationActivity).replaceFragment(
-                R.id.constraint_layout_container,
-                RegisterFragment(),
-                true
-            )
+            mNavigator.goToRegisterScreen()
         }
     }
 
     private fun setUpProgressDialog() {
         mProgressDialog = ProgressDialog(activity)
         mProgressDialog.setMessage(getString(R.string.msg_logging_in))
-    }
-
-    private fun goToMainScreen() {
-        val intent = Intent(activity, MainActivity::class.java)
-        if (activity is AuthenticationActivity) {
-            (activity as AuthenticationActivity).startActivity(intent, removeItself = true)
-        }
     }
 }

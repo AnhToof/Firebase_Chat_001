@@ -5,6 +5,7 @@ import com.lobesoftware.toof.firebase_chat_001.repositories.RepositoryModule
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.login.LoginFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.register.RegisterFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.profile.ProfileFragment
 import dagger.Component
 import javax.inject.Singleton
 
@@ -19,4 +20,6 @@ interface AppComponent {
     fun inject(loginFragment: LoginFragment)
 
     fun inject(registerFragment: RegisterFragment)
+
+    fun inject(profileFragment: ProfileFragment)
 }
