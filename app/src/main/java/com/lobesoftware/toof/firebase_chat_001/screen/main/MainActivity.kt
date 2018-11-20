@@ -17,6 +17,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setSupportActionBar(toolbar)
+        title = getString(R.string.title_chat_screen)
+
         handleEvents()
     }
 
@@ -24,14 +27,17 @@ class MainActivity : AppCompatActivity() {
         navigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_chat -> {
+                    title = getString(R.string.title_chat_screen)
                     replaceFragment(R.id.frame_layout_container, ChatFragment())
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_friends -> {
+                    title = getString(R.string.title_friend_screen)
                     replaceFragment(R.id.frame_layout_container, FriendFragment())
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_profile -> {
+                    supportActionBar?.hide()
                     replaceFragment(R.id.frame_layout_container, ProfileFragment.getInstance())
                     return@setOnNavigationItemSelectedListener true
                 }

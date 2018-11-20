@@ -18,6 +18,7 @@
     <string name="contain_special_char">- Chứa ký tự đặc biệt.</string>
     <string name="contain_invalid_word">- Chứa ký tự không hợp lệ.</string>
     <string name="msg_register_successfully">Đăng ký thành công!</string>
+
     <string name="msg_logging_in">Đang đăng nhập…</string>
     <string name="msg_registering">Đang đăng ký…</string>
     <string name="menu_chat">Chat</string>
@@ -26,4 +27,10 @@
     <string name="profile_email">Email</string>
     <string name="profile_phone">Số Điện Thoại</string>
     <string name="profile_logout">Đăng Xuất</string>
+    <string name="title_chat_screen">Chat</string>
+    <string name="title_friend_screen">Bạn bè</string>
+    <string name="hint_search">Tìm kiếm</string>
+    <string name="your_friends">Bạn bè</string>
+    <string name="friend_requests">Yêu cầu bạn bè</string>
+    <string name="action_add">Thêm</string>
 </resources>
