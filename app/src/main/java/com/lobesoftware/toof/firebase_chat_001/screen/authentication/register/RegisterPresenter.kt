@@ -43,10 +43,11 @@ class RegisterPresenter : RegisterContract.Presenter {
                 .doAfterTerminate {
                     view.hideProgressDialog()
                 }
-                .subscribe(
-                    { view.onRegisterSuccess() },
-                    { error -> view.onRegisterFail(error.localizedMessage) }
-                )
+                .subscribe({
+                    view.onRegisterSuccess()
+                }, { error ->
+                    view.onRegisterFail(error.localizedMessage)
+                })
             mCompositeDisposable.add(disposable)
         }
     }

@@ -1,5 +1,7 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -30,11 +32,17 @@ class MainActivity : AppCompatActivity() {
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_profile -> {
-                    replaceFragment(R.id.frame_layout_container, ProfileFragment())
+                    replaceFragment(R.id.frame_layout_container, ProfileFragment.getInstance())
                     return@setOnNavigationItemSelectedListener true
                 }
             }
             false
+        }
+    }
+
+    companion object {
+        fun getInstance(context: Context): Intent {
+            return Intent(context, MainActivity::class.java)
         }
     }
 }

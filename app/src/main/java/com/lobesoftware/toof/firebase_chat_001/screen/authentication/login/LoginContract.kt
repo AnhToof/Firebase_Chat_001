@@ -9,7 +9,7 @@ interface LoginContract {
 
         fun onInputDataInValid(errorMessageValidate: ErrorMessageValidate)
 
-        fun onLoginSuccess(user: User)
+        fun onLoginSuccess()
 
         fun onLoginFail(error: String)
 

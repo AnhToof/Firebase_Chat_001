@@ -4,6 +4,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,13 +27,20 @@ class RegisterFragment : Fragment(), RegisterContract.View {
     private lateinit var mPresenter: RegisterPresenter
     private lateinit var mView: View
     private lateinit var mProgressDialog: ProgressDialog
+    private lateinit var mNavigator: RegisterNavigator
+
+    companion object {
+        fun getInstance(): RegisterFragment {
+            return RegisterFragment()
+        }
+    }
 
     override fun onAttach(context: Context?) {
+        super.onAttach(context)
         val app = activity?.application
         if (app is MainApplication) {
             app.mAppComponent.inject(this@RegisterFragment)
         }
-        super.onAttach(context)
     }
 
     override fun onCreateView(
@@ -48,6 +56,10 @@ class RegisterFragment : Fragment(), RegisterContract.View {
             setValidator(mValidator)
             setUserRepository(mUserRepository)
             setView(this@RegisterFragment)
+        }
+
+        if (activity is AuthenticationActivity) {
+            mNavigator = RegisterNavigatorImpl(activity as AppCompatActivity)
         }
 
         handleEvents()
@@ -84,9 +96,7 @@ class RegisterFragment : Fragment(), RegisterContract.View {
 
     override fun onRegisterSuccess() {
         if (activity is AuthenticationActivity) {
-            val authenticationActivity = activity as AuthenticationActivity
-            authenticationActivity.toast(getString(R.string.msg_register_successfully))
-            authenticationActivity.supportFragmentManager.popBackStack()
+            mNavigator.backToLoginScreen()
         }
     }
 

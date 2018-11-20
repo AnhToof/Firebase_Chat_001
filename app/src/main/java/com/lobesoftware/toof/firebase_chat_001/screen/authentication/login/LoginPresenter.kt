@@ -44,10 +44,11 @@ class LoginPresenter : LoginContract.Presenter {
                 .doAfterTerminate {
                     view.hideProgressDialog()
                 }
-                .subscribe(
-                    { view.onLoginSuccess(it) },
-                    { error -> view.onLoginFail(error.localizedMessage) }
-                )
+                .subscribe({
+                    view.onLoginSuccess()
+                }, { error ->
+                    view.onLoginFail(error.localizedMessage)
+                })
             mCompositeDisposable.add(disposable)
         }
     }
