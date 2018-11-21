@@ -1,16 +1,11 @@
 package com.lobesoftware.toof.firebase_chat_001.repositories
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
-import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
-import io.reactivex.Single
-import io.reactivex.SingleEmitter
+import io.reactivex.*
+
 
 interface UserRepository {
 
@@ -23,6 +18,14 @@ interface UserRepository {
     fun fetchUserInformation(): Observable<User>
 
     fun signOut()
+
+    fun fetchFriend(currentId: String): Observable<User>
+
+    fun fetchRequestFriend(currentId: String): Observable<User>
+
+    fun acceptFriend(currentId: String, user: User): Completable
+
+    fun rejectFriend(currentId: String, user: User): Completable
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -94,6 +97,64 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
+    override fun fetchFriend(currentId: String): Observable<User> {
+        return Observable.create {
+            handleFetchFriend(currentId, it)
+        }
+    }
+
+    override fun fetchRequestFriend(currentId: String): Observable<User> {
+        return Observable.create {
+            handleFetchFriendRequest(currentId, it)
+        }
+    }
+
+    override fun acceptFriend(currentId: String, user: User): Completable {
+        return Completable.create { emitter ->
+            user.id?.let { id ->
+                val childUpdates = HashMap<String, Any?>()
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$currentId/$id"] = null
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$id/$currentId"] = null
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$currentId/$id"] = true
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$id/$currentId"] = true
+                mDatabase.updateChildren(childUpdates)
+                    .addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            emitter.onComplete()
+                            return@addOnCompleteListener
+                        }
+                        it.exception?.let { exception ->
+                            emitter.onError(exception)
+                            return@addOnCompleteListener
+                        }
+                        emitter.onError(NullPointerException())
+                    }
+            }
+        }
+    }
+
+    override fun rejectFriend(currentId: String, user: User): Completable {
+        return Completable.create { emitter ->
+            user.id?.let { id ->
+                val childUpdates = HashMap<String, Any?>()
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$currentId/$id"] = null
+                childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$id/$currentId"] = null
+                mDatabase.updateChildren(childUpdates)
+                    .addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            emitter.onComplete()
+                            return@addOnCompleteListener
+                        }
+                        it.exception?.let { exception ->
+                            emitter.onError(exception)
+                            return@addOnCompleteListener
+                        }
+                        emitter.onError(NullPointerException())
+                    }
+            }
+        }
+    }
+
     private fun saveUserToFirebaseDatabase(user: User) {
         user.id = mFirebaseAuth.currentUser?.uid ?: ""
         user.id?.let {
@@ -127,6 +188,93 @@ class UserRepositoryImpl : UserRepository {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue(User::class.java)?.let {
                         emitter.onNext(it)
+                    }
+                }
+            })
+    }
+
+    private fun handleFetchFriend(id: String, emitter: ObservableEmitter<User>) {
+        mDatabase.child(Constant.KeyDatabase.Friend.FRIENDSHIP).child(id)
+            .addChildEventListener(object : ChildEventListener {
+                override fun onCancelled(dataSnapshot: DatabaseError) {
+                    emitter.onError(dataSnapshot.toException())
+                }
+
+                override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                }
+
+                override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                }
+
+                override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                    dataSnapshot.key?.let {
+                        handleFetchUserById(it, emitter, Constant.ACTION_ADD)
+                    }
+                }
+
+                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.key?.let {
+                        handleFetchUserById(it, emitter, Constant.ACTION_REMOVE)
+                    }
+                }
+            })
+    }
+
+    private fun handleFetchFriendRequest(id: String, emitter: ObservableEmitter<User>) {
+        mDatabase.child(Constant.KeyDatabase.Friend.FRIEND_REQUEST).child(id)
+            .addChildEventListener(object : ChildEventListener {
+                override fun onCancelled(dataSnapshot: DatabaseError) {
+                    emitter.onError(dataSnapshot.toException())
+                }
+
+                override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                }
+
+                override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                }
+
+                override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                    dataSnapshot.key?.let {
+                        if (dataSnapshot.getValue(String::class.java) == Constant.KeyDatabase.Friend.TYPE_REQUEST_RECEIVED) {
+                            handleFetchUserById(it, emitter, Constant.ACTION_ADD)
+                        }
+                    }
+                }
+
+                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.key?.let {
+                        handleFetchUserById(it, emitter, Constant.ACTION_REMOVE)
+                    }
+                }
+            })
+    }
+
+    private fun handleFetchUserById(id: String, emitter: ObservableEmitter<User>, action: String) {
+        var tmpAction = action
+        mDatabase.child(Constant.KeyDatabase.User.USER).child(id)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onCancelled(dataSnapshot: DatabaseError) {
+                }
+
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.getValue(User::class.java)?.let {
+                        tmpAction = when (tmpAction) {
+                            Constant.ACTION_ADD -> {
+                                it.action = Constant.ACTION_ADD
+                                emitter.onNext(it)
+                                ""
+                            }
+                            Constant.ACTION_REMOVE -> {
+                                it.action = Constant.ACTION_REMOVE
+                                emitter.onNext(it)
+                                ""
+                            }
+                            else -> {
+                                it.action = Constant.ACTION_CHANGE
+                                emitter.onNext(it)
+                                ""
+                            }
+                        }
                     }
                 }
             })
