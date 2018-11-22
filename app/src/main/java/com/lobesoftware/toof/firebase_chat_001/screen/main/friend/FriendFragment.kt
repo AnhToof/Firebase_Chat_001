@@ -7,6 +7,8 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -14,6 +16,7 @@ import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
+import kotlinx.android.synthetic.main.custom_search_box.view.*
 import kotlinx.android.synthetic.main.fragment_friend.view.*
 import javax.inject.Inject
 
@@ -26,6 +29,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     private lateinit var mFriendAdapter: FriendAdapter
     private lateinit var mFriendRequestAdapter: FriendRequestAdapter
     private lateinit var mNavigator: FriendNavigator
+    private var mFriends = ArrayList<User>()
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -56,7 +60,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         }
 
         setUpData()
-
+        handleEvents()
         return mView
     }
 
@@ -90,12 +94,37 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         mFriendRequestAdapter.updateData(user)
     }
 
-    override fun onFetchFriendSuccess(user: User) {
-        mFriendAdapter.updateData(user)
+    override fun onFriendAdded(user: User) {
+        mFriends.add(user)
+        mFriendAdapter.addFriend(user, mFriends.size)
+    }
+
+    override fun onFriendChanged(user: User) {
+        for ((index, oldUser) in mFriends.withIndex()) {
+            if (oldUser.id == user.id) {
+                mFriends[index] = user
+                mFriendAdapter.changeFriend(user, index)
+                break
+            }
+        }
+    }
+
+    override fun onFriendRemoved(user: User) {
+        for ((index, oldUser) in mFriends.withIndex()) {
+            if (oldUser.id == user.id) {
+                mFriends.remove(oldUser)
+                mFriendAdapter.removeFriend(user, index)
+                break
+            }
+        }
     }
 
     override fun onCheckCurrentUserFail() {
         mNavigator.goToAuthenticationScreen()
+    }
+
+    override fun onFilterFriendSuccess(users: List<User>) {
+        mFriendAdapter.setListFriends(users as ArrayList<User>, true)
     }
 
     private fun initViews() {
@@ -106,6 +135,26 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     private fun setUpData() {
         mPresenter.fetchFriend()
         mPresenter.fetchFriendRequest()
+    }
+
+    private fun handleEvents() {
+        mView.edit_search.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s.toString().isEmpty()) {
+                    mView.constraint_layout_request.visibility = View.VISIBLE
+                    mFriendAdapter.setListFriends(mFriends, false)
+                } else {
+                    mView.constraint_layout_request.visibility = View.GONE
+                }
+                mPresenter.filterFriend(s.toString(), mFriends)
+            }
+        })
     }
 
     private fun setUpFriendRecyclerView() {

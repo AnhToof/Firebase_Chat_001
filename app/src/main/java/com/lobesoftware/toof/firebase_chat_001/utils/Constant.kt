@@ -17,6 +17,7 @@ object Constant {
     object KeyDatabase {
         object User {
             const val USER = "users"
+            const val GROUP = "groups"
         }
 
         object Friend {
@@ -24,6 +25,12 @@ object Constant {
             const val FRIEND_REQUEST = "friend_request"
             const val TYPE_REQUEST_SENT = "sent"
             const val TYPE_REQUEST_RECEIVED = "received"
+        }
+
+        object Group {
+            const val GROUP = "groups"
+            const val TYPE = "type"
+            const val MEMBER = "members"
         }
     }
 }

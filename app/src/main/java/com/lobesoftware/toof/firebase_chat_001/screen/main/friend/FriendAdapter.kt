@@ -10,14 +10,14 @@ import android.widget.TextView
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.extension.loadUrlWithCircleCropTransform
-import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
 import kotlinx.android.synthetic.main.item_user.view.*
 
 class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendAdapter.ViewHolder>() {
 
-    private val mUsers = ArrayList<User>()
+    private var mUsers = ArrayList<User>()
     private var mListener: ItemRecyclerViewClickListener<User>? = null
+    private var mIsSearch: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_user, parent, false)
@@ -30,28 +30,25 @@ class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendA
         viewHolder.bindViewData(mUsers[position])
     }
 
-    fun updateData(user: User) {
-        when (user.action) {
-            Constant.ACTION_ADD -> {
-                user.position = mUsers.size
-                mUsers.add(user)
-                notifyItemInserted(mUsers.size)
-            }
-            Constant.ACTION_REMOVE -> {
-                val index = mUsers.indexOf(user)
-                user.position = index
-                mUsers.remove(user)
-                notifyItemRemoved(index)
-            }
-            Constant.ACTION_CHANGE -> {
-                for ((index, oldUser) in mUsers.withIndex()) {
-                    if (oldUser.id == user.id) {
-                        mUsers[index] = user
-                        notifyItemChanged(index)
-                    }
-                }
-            }
-        }
+    fun setListFriends(users: ArrayList<User>, isSearch: Boolean) {
+        mUsers = users
+        mIsSearch = isSearch
+        notifyDataSetChanged()
+    }
+
+    fun addFriend(user: User, position: Int) {
+        mUsers.add(user)
+        notifyItemInserted(position)
+    }
+
+    fun removeFriend(user: User, position: Int) {
+        mUsers.remove(user)
+        notifyItemInserted(position)
+    }
+
+    fun changeFriend(user: User, position: Int) {
+        mUsers[position] = user
+        notifyItemInserted(position)
     }
 
     fun setItemRecyclerViewListener(listener: ItemRecyclerViewClickListener<User>?) {
