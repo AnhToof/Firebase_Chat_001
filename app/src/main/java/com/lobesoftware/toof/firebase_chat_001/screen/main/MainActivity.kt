@@ -27,11 +27,13 @@ class MainActivity : AppCompatActivity() {
         navigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_chat -> {
+                    supportActionBar?.show()
                     title = getString(R.string.title_chat_screen)
                     replaceFragment(R.id.frame_layout_container, ChatFragment())
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_friends -> {
+                    supportActionBar?.show()
                     title = getString(R.string.title_friend_screen)
                     replaceFragment(R.id.frame_layout_container, FriendFragment())
                     return@setOnNavigationItemSelectedListener true

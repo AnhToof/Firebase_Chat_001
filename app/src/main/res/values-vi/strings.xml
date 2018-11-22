@@ -33,4 +33,6 @@
     <string name="your_friends">Bạn bè</string>
     <string name="friend_requests">Yêu cầu bạn bè</string>
     <string name="action_add">Thêm</string>
+    <string name="accept">Chấp nhận</string>
+    <string name="reject">Từ chối</string>
 </resources>

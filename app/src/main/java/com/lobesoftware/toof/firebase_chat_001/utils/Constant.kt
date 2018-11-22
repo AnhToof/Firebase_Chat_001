@@ -10,10 +10,20 @@ object Constant {
     const val EMAIL_FORMAT = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
     const val LENGTH_PASSWORD_FORMAT = 8
     const val MAX_LENGTH_NAME_FORMAT = 255
+    const val ACTION_ADD = "Add"
+    const val ACTION_REMOVE = "Remove"
+    const val ACTION_CHANGE = "Change"
 
     object KeyDatabase {
         object User {
             const val USER = "users"
+        }
+
+        object Friend {
+            const val FRIENDSHIP = "friendships"
+            const val FRIEND_REQUEST = "friend_request"
+            const val TYPE_REQUEST_SENT = "sent"
+            const val TYPE_REQUEST_RECEIVED = "received"
         }
     }
 }

@@ -23,8 +23,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/custom_search"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:visibility="gone">
+            app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
                 android:id="@+id/text_request"
@@ -40,8 +39,8 @@
 
         <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycler_view_request"
-                android:layout_width="@dimen/dp_0"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dp_0"
                 app:layout_constraintTop_toBottomOf="@id/text_request"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -70,8 +69,8 @@
 
     <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view_friends"
-            android:layout_width="@dimen/dp_0"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
             app:layout_constraintTop_toBottomOf="@id/line"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
