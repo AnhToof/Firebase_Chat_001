@@ -9,9 +9,15 @@ interface FriendContract {
 
         fun onFetchFriendRequestSuccess(user: User)
 
-        fun onFetchFriendSuccess(user: User)
+        fun onFriendRemoved(user: User)
+
+        fun onFriendAdded(user: User)
+
+        fun onFriendChanged(user: User)
 
         fun onCheckCurrentUserFail()
+
+        fun onFilterFriendSuccess(users: List<User>)
     }
 
     interface Presenter : BasePresenter<View> {
@@ -23,5 +29,7 @@ interface FriendContract {
         fun acceptFriend(user: User)
 
         fun rejectFriend(user: User)
+
+        fun filterFriend(searchText: String, users: ArrayList<User>)
     }
 }

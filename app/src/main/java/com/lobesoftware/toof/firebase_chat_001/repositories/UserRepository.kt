@@ -117,6 +117,16 @@ class UserRepositoryImpl : UserRepository {
                 childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$id/$currentId"] = null
                 childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$currentId/$id"] = true
                 childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$id/$currentId"] = true
+                mDatabase.child(Constant.KeyDatabase.Group.GROUP).push().key?.let {
+                    childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.TYPE}"] = false
+                    childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.MEMBER}/$id"] =
+                            true
+                    childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.MEMBER}/$currentId"] =
+                            true
+                    childUpdates["/${Constant.KeyDatabase.User.USER}/$currentId/${Constant.KeyDatabase.User.GROUP}/$it"] =
+                            true
+                    childUpdates["/${Constant.KeyDatabase.User.USER}/$id/${Constant.KeyDatabase.User.GROUP}/$it"] = true
+                }
                 mDatabase.updateChildren(childUpdates)
                     .addOnCompleteListener {
                         if (it.isSuccessful) {

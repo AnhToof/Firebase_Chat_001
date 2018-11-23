@@ -40,16 +40,20 @@ class FriendRequestAdapter(private val context: Context) : RecyclerView.Adapter<
                 notifyItemInserted(mUsers.size)
             }
             Constant.ACTION_REMOVE -> {
-                val index = mUsers.indexOf(user)
-                user.position = index
-                mUsers.remove(user)
-                notifyItemRemoved(index)
+                for ((index, oldUser) in mUsers.withIndex()) {
+                    if (oldUser.id == user.id) {
+                        mUsers.remove(oldUser)
+                        notifyItemRemoved(index)
+                        break
+                    }
+                }
             }
             Constant.ACTION_CHANGE -> {
                 for ((index, oldUser) in mUsers.withIndex()) {
                     if (oldUser.id == user.id) {
                         mUsers[index] = user
                         notifyItemChanged(index)
+                        break
                     }
                 }
             }
