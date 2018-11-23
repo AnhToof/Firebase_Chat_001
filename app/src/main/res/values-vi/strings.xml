@@ -35,4 +35,5 @@
     <string name="action_add">Thêm</string>
     <string name="accept">Chấp nhận</string>
     <string name="reject">Từ chối</string>
+    <string name="msg_error_something_wrong">Có vấn đề xảy ra.</string>
 </resources>

@@ -76,13 +76,13 @@ class LoginFragment : Fragment(), LoginContract.View {
     }
 
     override fun onStop() {
-        super.onStop()
         mPresenter.onStop()
+        super.onStop()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         mPresenter.onDestroy()
+        super.onDestroy()
     }
 
     override fun onLoginSuccess() {

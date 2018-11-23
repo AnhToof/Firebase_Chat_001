@@ -2,6 +2,7 @@ package com.lobesoftware.toof.firebase_chat_001.repositories
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.*
@@ -26,6 +27,12 @@ interface UserRepository {
     fun acceptFriend(currentId: String, user: User): Completable
 
     fun rejectFriend(currentId: String, user: User): Completable
+
+    fun fetchConversations(currentId: String): Observable<Group>
+
+    fun fetchConversationsInformation(currentId: String, group: Group, action: String): Observable<Group>
+
+    fun fetchUserGroupById(group: Group): Observable<Group>
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -118,6 +125,7 @@ class UserRepositoryImpl : UserRepository {
                 childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$currentId/$id"] = true
                 childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$id/$currentId"] = true
                 mDatabase.child(Constant.KeyDatabase.Group.GROUP).push().key?.let {
+                    childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.ID}"] = it
                     childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.TYPE}"] = false
                     childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$it/${Constant.KeyDatabase.Group.MEMBER}/$id"] =
                             true
@@ -162,6 +170,131 @@ class UserRepositoryImpl : UserRepository {
                         emitter.onError(NullPointerException())
                     }
             }
+        }
+    }
+
+    override fun fetchConversations(currentId: String): Observable<Group> {
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.User.USER).child(currentId).child(Constant.KeyDatabase.User.GROUP)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            emitter.onNext(Group(id = it, action = Constant.ACTION_ADD))
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.key?.let {
+                            emitter.onNext(Group(id = it, action = Constant.ACTION_REMOVE))
+                        }
+                    }
+                })
+        }
+    }
+
+    override fun fetchConversationsInformation(currentId: String, group: Group, action: String): Observable<Group> {
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Group.GROUP)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            if (it == group.id) {
+                                dataSnapshot.getValue(Group::class.java)?.let { value ->
+                                    when (action) {
+                                        Constant.ACTION_ADD -> {
+                                            value.action = action
+                                            if (value.type == false) {
+                                                value.members.remove(currentId)
+                                            }
+                                        }
+                                        Constant.ACTION_REMOVE -> {
+                                            value.action = action
+                                            TODO("Add later")
+                                        }
+                                    }
+                                    emitter.onNext(value)
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.key?.let {
+                            if (it == group.id) {
+                                dataSnapshot.getValue(Group::class.java)?.let { value ->
+                                    value.action = Constant.ACTION_REMOVE
+                                    emitter.onNext(value)
+                                }
+                            }
+                        }
+                    }
+                })
+
+        }
+    }
+
+    override fun fetchUserGroupById(group: Group): Observable<Group> {
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.User.USER)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            if (group.type == false) {
+                                if (it == group.members.keys.elementAt(0)) {
+                                    dataSnapshot.getValue(User::class.java)?.let { user ->
+                                        group.title = user.fullName
+                                        group.action = Constant.ACTION_CHANGE
+                                        emitter.onNext(group)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            if (group.type == false) {
+                                if (it == group.members.keys.elementAt(0)) {
+                                    dataSnapshot.getValue(User::class.java)?.let { user ->
+                                        group.title = user.fullName
+                                        group.action = Constant.ACTION_ADD
+                                        emitter.onNext(group)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        TODO("Remove related user (Ex: friend, group,....)")
+                    }
+                })
         }
     }
 

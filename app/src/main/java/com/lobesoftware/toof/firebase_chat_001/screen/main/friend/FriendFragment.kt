@@ -90,6 +90,16 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onStop() {
+        mPresenter.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        mPresenter.onDestroy()
+        super.onDestroy()
+    }
+
     override fun onFetchFriendRequestSuccess(user: User) {
         mFriendRequestAdapter.updateData(user)
     }

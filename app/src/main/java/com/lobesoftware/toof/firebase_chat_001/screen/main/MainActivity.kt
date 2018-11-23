@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
         title = getString(R.string.title_chat_screen)
+        replaceFragment(R.id.frame_layout_container, ChatFragment())
 
         handleEvents()
     }

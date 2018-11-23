@@ -54,13 +54,13 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View 
     }
 
     override fun onStop() {
-        super.onStop()
         mPresenter.onStop()
+        super.onStop()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         mPresenter.onDestroy()
+        super.onDestroy()
     }
 
     companion object {
