@@ -54,6 +54,16 @@ class ProfileFragment : Fragment(), ProfileContract.View {
         return mView
     }
 
+    override fun onStop() {
+        mPresenter.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        mPresenter.onDestroy()
+        super.onDestroy()
+    }
+
     override fun onFetchInformationSuccess(user: User) {
         mView.text_email.text = user.email
         mView.text_full_name.text = user.fullName

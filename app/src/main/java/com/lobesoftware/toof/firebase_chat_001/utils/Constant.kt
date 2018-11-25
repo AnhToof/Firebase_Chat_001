@@ -29,6 +29,7 @@ object Constant {
 
         object Group {
             const val GROUP = "groups"
+            const val ID = "id"
             const val TYPE = "type"
             const val MEMBER = "members"
         }
