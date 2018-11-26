@@ -45,4 +45,8 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 }
 
+androidExtensions {
+    experimental = true
+}
+
 apply plugin: 'com.google.gms.google-services'

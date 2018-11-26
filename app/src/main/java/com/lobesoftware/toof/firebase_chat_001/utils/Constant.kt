@@ -34,4 +34,12 @@ object Constant {
             const val MEMBER = "members"
         }
     }
+
+    object RequestCode {
+        const val REQUEST_CODE = 999
+    }
+
+    object ResultCode {
+        const val RESULT_OK = 9
+    }
 }

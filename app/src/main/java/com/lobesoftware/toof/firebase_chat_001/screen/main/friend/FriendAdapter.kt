@@ -43,12 +43,12 @@ class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendA
 
     fun removeFriend(user: User, position: Int) {
         mUsers.remove(user)
-        notifyItemInserted(position)
+        notifyItemRemoved(position)
     }
 
     fun changeFriend(user: User, position: Int) {
         mUsers[position] = user
-        notifyItemInserted(position)
+        notifyItemChanged(position)
     }
 
     fun setItemRecyclerViewListener(listener: ItemRecyclerViewClickListener<User>?) {

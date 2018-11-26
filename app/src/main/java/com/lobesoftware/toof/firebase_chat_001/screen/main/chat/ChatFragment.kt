@@ -3,13 +3,11 @@ package com.lobesoftware.toof.firebase_chat_001.screen.main.chat
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
@@ -54,8 +52,8 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
             setView(this@ChatFragment)
             setUserRepository(mUserRepository)
         }
-        if (activity is MainActivity) {
-            mNavigator = ChatNavigatorImpl(activity as AppCompatActivity)
+        (activity as? MainActivity)?.let {
+            mNavigator = ChatNavigatorImpl(it)
         }
         setUpData()
         handleEvents()
@@ -69,7 +67,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_add) {
-            TODO("Add function: create conversations(groups)")
+            mNavigator.goToCreateGroupScreen(this)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -122,9 +120,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     }
 
     override fun onFetchFail() {
-        if (activity is MainActivity) {
-            (activity as MainActivity).toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
-        }
+        (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
     }
 
     private fun setUpData() {

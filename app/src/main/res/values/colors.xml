@@ -8,4 +8,5 @@
     <color name="white">#ffff</color>
     <color name="black">#000000</color>
     <color name="colorLogout">#dd2c00</color>
+    <color name="lowGrey">#bdbdbd</color>
 </resources>

@@ -5,11 +5,12 @@ import android.support.annotation.IdRes
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 
 fun AppCompatActivity.startActivity(intent: Intent, flags: Int? = null, removeItself: Boolean = false) {
     flags?.let { intent.flags = it }
     startActivity(intent)
-    if (removeItself){
+    if (removeItself) {
         finish()
     }
 }
@@ -17,12 +18,16 @@ fun AppCompatActivity.startActivity(intent: Intent, flags: Int? = null, removeIt
 fun AppCompatActivity.replaceFragment(
     @IdRes containerId: Int, fragment: Fragment,
     addToBackStack: Boolean = false,
-    tag: String = fragment::class.java.simpleName
+    tag: String = fragment::class.java.simpleName,
+    currentFragment: Fragment? = null
 ) {
     val fragmentManager = supportFragmentManager
     val transaction = fragmentManager.beginTransaction()
     if (addToBackStack) {
         transaction.addToBackStack(tag)
+    }
+    currentFragment?.let {
+        fragment.setTargetFragment(currentFragment, Constant.RequestCode.REQUEST_CODE)
     }
     transaction.replace(containerId, fragment, tag)
     transaction.commitAllowingStateLoss()
