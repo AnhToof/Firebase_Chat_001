@@ -69,6 +69,13 @@ class Validator(private val context: Context) {
         )
     }
 
+    fun validateGroupTitle(title: String): String? {
+        if (title.trim().isBlank()) {
+            return context.getString(R.string.please_input_title_group)
+        }
+        return null
+    }
+
     private fun convertStringToListStringWithFormatPattern(
         strings: List<String>,
         format: String

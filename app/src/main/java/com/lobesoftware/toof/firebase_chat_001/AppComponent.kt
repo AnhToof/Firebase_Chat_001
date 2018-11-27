@@ -7,6 +7,7 @@ import com.lobesoftware.toof.firebase_chat_001.screen.authentication.login.Login
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.register.RegisterFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.add_member.AddMemberFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat.ChatFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.friend.FriendFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.profile.ProfileFragment
 import dagger.Component
@@ -31,4 +32,6 @@ interface AppComponent {
     fun inject(chatFragment: ChatFragment)
 
     fun inject(addMemberFragment: AddMemberFragment)
+
+    fun inject(createGroupFragment: CreateGroupFragment)
 }

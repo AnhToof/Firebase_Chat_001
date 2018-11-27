@@ -1,7 +1,7 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.friend
 
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,7 +11,7 @@ import io.reactivex.schedulers.Schedulers
 class FriendPresenter : FriendContract.Presenter {
 
     private var mView: FriendContract.View? = null
-    private lateinit var mUserRepository: UserRepositoryImpl
+    private lateinit var mUserRepository: UserRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun fetchFriendRequest() {
@@ -128,7 +128,7 @@ class FriendPresenter : FriendContract.Presenter {
         mView = null
     }
 
-    fun setUserRepository(userRepository: UserRepositoryImpl) {
+    fun setUserRepository(userRepository: UserRepository) {
         mUserRepository = userRepository
     }
 

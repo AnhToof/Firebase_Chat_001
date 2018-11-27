@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.validator.Validator
 import kotlinx.android.synthetic.main.fragment_login.view.*
@@ -22,7 +22,7 @@ class LoginFragment : Fragment(), LoginContract.View {
     @Inject
     internal lateinit var mValidator: Validator
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: LoginPresenter
     private lateinit var mView: View
     private lateinit var mProgressDialog: ProgressDialog

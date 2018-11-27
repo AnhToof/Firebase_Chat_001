@@ -1,7 +1,7 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.authentication.register
 
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.utils.validator.Validator
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -11,7 +11,7 @@ class RegisterPresenter : RegisterContract.Presenter {
 
     private var mView: RegisterContract.View? = null
     private lateinit var mValidator: Validator
-    private lateinit var mUserRepository: UserRepositoryImpl
+    private lateinit var mUserRepository: UserRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun setView(view: RegisterContract.View) {
@@ -56,7 +56,7 @@ class RegisterPresenter : RegisterContract.Presenter {
         mValidator = validator
     }
 
-    fun setUserRepository(userRepository: UserRepositoryImpl) {
+    fun setUserRepository(userRepository: UserRepository) {
         mUserRepository = userRepository
     }
 

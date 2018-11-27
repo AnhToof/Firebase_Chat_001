@@ -15,7 +15,6 @@ class ChatAdapter(private val context: Context) : RecyclerView.Adapter<ChatAdapt
 
     private var mConversations = ArrayList<Group>()
     private var mListener: ItemRecyclerViewClickListener<Group>? = null
-    private var mIsSearch: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_user, parent, false)
@@ -32,9 +31,8 @@ class ChatAdapter(private val context: Context) : RecyclerView.Adapter<ChatAdapt
         mListener = listener
     }
 
-    fun setListConversations(conversations: ArrayList<Group>, isSearch: Boolean) {
-        mConversations = conversations
-        mIsSearch = isSearch
+    fun setListConversations(conversations: List<Group>) {
+        mConversations.addAll(conversations)
         notifyDataSetChanged()
     }
 

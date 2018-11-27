@@ -17,6 +17,7 @@
     <string name="contain_special_char">- Contain special characters.</string>
     <string name="contain_invalid_word">- Contain invalid characters.</string>
     <string name="msg_register_successfully">Register successfully!</string>
+    <string name="please_input_title_group">Please input title group</string>
 
     <string name="msg_logging_in">Logging in…</string>
     <string name="msg_registering">Registering…</string>
@@ -44,4 +45,6 @@
     <string name="edit">Edit</string>
     <string name="action_add_group">Add Group</string>
     <string name="action_add_member">Add Member</string>
+    <string name="msg_creating_group">Creating group…</string>
+    <string name="msg_session_expired">Session has expired. Please login again!</string>
 </resources>

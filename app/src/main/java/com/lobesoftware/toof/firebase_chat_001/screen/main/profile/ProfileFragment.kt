@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import kotlinx.android.synthetic.main.fragment_profile.view.*
 import javax.inject.Inject
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class ProfileFragment : Fragment(), ProfileContract.View {
 
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: ProfilePresenter
     private lateinit var mView: View
     private lateinit var mNavigator: ProfileNavigator

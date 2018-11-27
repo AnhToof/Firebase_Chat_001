@@ -14,7 +14,7 @@ import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
 import kotlinx.android.synthetic.main.custom_search_box.view.*
@@ -24,7 +24,7 @@ import javax.inject.Inject
 class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListener<Group> {
 
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: ChatPresenter
     private lateinit var mAdapter: ChatAdapter
     private lateinit var mView: View
@@ -91,7 +91,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     }
 
     override fun onFilterConversationSuccess(conversations: List<Group>) {
-        mAdapter.setListConversations(conversations as ArrayList<Group>, true)
+        mAdapter.setListConversations(conversations)
     }
 
     override fun onConversationAdded(group: Group) {
@@ -137,7 +137,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (s.toString().isEmpty()) {
-                    mAdapter.setListConversations(mConversations, false)
+                    mAdapter.setListConversations(mConversations)
                 }
                 mPresenter.filterConversation(s.toString(), mConversations)
             }

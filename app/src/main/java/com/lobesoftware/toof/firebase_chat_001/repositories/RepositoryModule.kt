@@ -9,7 +9,7 @@ class RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(): UserRepositoryImpl {
+    fun provideUserRepository(): UserRepository {
         return UserRepositoryImpl()
     }
 }

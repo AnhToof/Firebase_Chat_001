@@ -13,7 +13,7 @@ import android.view.*
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
 import kotlinx.android.synthetic.main.custom_search_box.view.*
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickListener<User> {
 
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: FriendPresenter
     private lateinit var mView: View
     private lateinit var mFriendAdapter: FriendAdapter
@@ -134,7 +134,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     }
 
     override fun onFilterFriendSuccess(users: List<User>) {
-        mFriendAdapter.setListFriends(users as ArrayList<User>, true)
+        mFriendAdapter.setListFriends(users)
     }
 
     private fun initViews() {
@@ -158,7 +158,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (s.toString().isEmpty()) {
                     mView.constraint_layout_request.visibility = View.VISIBLE
-                    mFriendAdapter.setListFriends(mFriends, false)
+                    mFriendAdapter.setListFriends(mFriends)
                 } else {
                     mView.constraint_layout_request.visibility = View.GONE
                 }
