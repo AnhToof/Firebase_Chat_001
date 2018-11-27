@@ -18,6 +18,9 @@ class FriendPresenter : FriendContract.Presenter {
         handleCheckCurrentUser {
             mView?.let { view ->
                 val disposable = mUserRepository.fetchRequestFriend(it)
+                    .flatMap { user ->
+                        mUserRepository.fetchUserById(user)
+                    }
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ user ->
@@ -34,6 +37,9 @@ class FriendPresenter : FriendContract.Presenter {
         handleCheckCurrentUser {
             mView?.let { view ->
                 val disposable = mUserRepository.fetchFriend(it)
+                    .flatMap { user ->
+                        mUserRepository.fetchUserById(user)
+                    }
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ user ->

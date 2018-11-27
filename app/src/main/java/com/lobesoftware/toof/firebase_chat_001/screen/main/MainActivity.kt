@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.View
 import com.lobesoftware.toof.firebase_chat_001.R
-import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat.ChatFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.friend.FriendFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.profile.ProfileFragment
@@ -13,15 +13,39 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    enum class Page(val id: Int, val title: String?) {
+        PAGE_CHAT(0, "Chat"),
+        PAGE_FRIEND(1, "Friend"),
+        PAGE_PROFILE(2, null)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
-        title = getString(R.string.title_chat_screen)
-        replaceFragment(R.id.frame_layout_container, ChatFragment())
-
+        title = Page.PAGE_CHAT.title
+        setUpViewPager()
         handleEvents()
+    }
+
+    fun showBottomNavigation() {
+        navigation.visibility = View.VISIBLE
+    }
+
+    fun hideBottomNavigation() {
+        navigation.visibility = View.GONE
+    }
+
+    private fun setUpViewPager() {
+        val viewPagerAdapter = MainViewPagerAdapter(supportFragmentManager)
+        viewPagerAdapter.addFragment(ChatFragment())
+        viewPagerAdapter.addFragment(FriendFragment())
+        viewPagerAdapter.addFragment(ProfileFragment())
+        viewpager.apply {
+            adapter = viewPagerAdapter
+            offscreenPageLimit = 3
+        }
     }
 
     private fun handleEvents() {
@@ -29,19 +53,19 @@ class MainActivity : AppCompatActivity() {
             when (it.itemId) {
                 R.id.navigation_chat -> {
                     supportActionBar?.show()
-                    title = getString(R.string.title_chat_screen)
-                    replaceFragment(R.id.frame_layout_container, ChatFragment())
+                    toolbar.title = Page.PAGE_CHAT.title
+                    viewpager.currentItem = Page.PAGE_CHAT.id
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_friends -> {
                     supportActionBar?.show()
-                    title = getString(R.string.title_friend_screen)
-                    replaceFragment(R.id.frame_layout_container, FriendFragment())
+                    toolbar.title = Page.PAGE_FRIEND.title
+                    viewpager.currentItem = Page.PAGE_FRIEND.id
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_profile -> {
                     supportActionBar?.hide()
-                    replaceFragment(R.id.frame_layout_container, ProfileFragment.getInstance())
+                    viewpager.currentItem = Page.PAGE_PROFILE.id
                     return@setOnNavigationItemSelectedListener true
                 }
             }

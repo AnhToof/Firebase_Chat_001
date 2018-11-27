@@ -33,6 +33,10 @@ interface UserRepository {
     fun fetchConversationsInformation(currentId: String, group: Group, action: String): Observable<Group>
 
     fun fetchUserGroupById(group: Group): Observable<Group>
+
+    fun fetchMembers(currentId: String): Observable<User>
+
+    fun fetchUserById(user: User): Observable<User>
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -105,14 +109,66 @@ class UserRepositoryImpl : UserRepository {
     }
 
     override fun fetchFriend(currentId: String): Observable<User> {
-        return Observable.create {
-            handleFetchFriend(currentId, it)
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Friend.FRIENDSHIP).child(currentId)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            val user = User(id = it, action = Constant.ACTION_ADD)
+                            emitter.onNext(user)
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.key?.let {
+                            val user = User(id = it, action = Constant.ACTION_REMOVE)
+                            emitter.onNext(user)
+                        }
+                    }
+                })
         }
     }
 
     override fun fetchRequestFriend(currentId: String): Observable<User> {
-        return Observable.create {
-            handleFetchFriendRequest(currentId, it)
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Friend.FRIEND_REQUEST).child(currentId)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let {
+                            if (dataSnapshot.getValue(String::class.java) == Constant.KeyDatabase.Friend.TYPE_REQUEST_RECEIVED) {
+                                val user = User(id = it, action = Constant.ACTION_ADD)
+                                emitter.onNext(user)
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.key?.let {
+                            val user = User(id = it, action = Constant.ACTION_REMOVE)
+                            emitter.onNext(user)
+                        }
+                    }
+                })
         }
     }
 
@@ -249,7 +305,6 @@ class UserRepositoryImpl : UserRepository {
                         }
                     }
                 })
-
         }
     }
 
@@ -298,6 +353,80 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
+    override fun fetchMembers(currentId: String): Observable<User> {
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.User.USER)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.key?.let { id ->
+                            if (id != currentId) {
+                                dataSnapshot.getValue(User::class.java)?.let { user ->
+                                    user.action = Constant.ACTION_ADD
+                                    emitter.onNext(user)
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.key?.let { id ->
+                            if (id != currentId) {
+                                dataSnapshot.getValue(User::class.java)?.let { user ->
+                                    user.action = Constant.ACTION_ADD
+                                    emitter.onNext(user)
+                                }
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
+    override fun fetchUserById(user: User): Observable<User> {
+        return Observable.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.User.USER)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
+                            if (fetchUser.id == user.id) {
+                                fetchUser.action = Constant.ACTION_CHANGE
+                                emitter.onNext(fetchUser)
+                            }
+                        }
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
+                            if (fetchUser.id == user.id) {
+                                fetchUser.action = Constant.ACTION_ADD
+                                emitter.onNext(fetchUser)
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    }
+                })
+        }
+    }
+
     private fun saveUserToFirebaseDatabase(user: User) {
         user.id = mFirebaseAuth.currentUser?.uid ?: ""
         user.id?.let {
@@ -331,93 +460,6 @@ class UserRepositoryImpl : UserRepository {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     dataSnapshot.getValue(User::class.java)?.let {
                         emitter.onNext(it)
-                    }
-                }
-            })
-    }
-
-    private fun handleFetchFriend(id: String, emitter: ObservableEmitter<User>) {
-        mDatabase.child(Constant.KeyDatabase.Friend.FRIENDSHIP).child(id)
-            .addChildEventListener(object : ChildEventListener {
-                override fun onCancelled(dataSnapshot: DatabaseError) {
-                    emitter.onError(dataSnapshot.toException())
-                }
-
-                override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                }
-
-                override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                }
-
-                override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                    dataSnapshot.key?.let {
-                        handleFetchUserById(it, emitter, Constant.ACTION_ADD)
-                    }
-                }
-
-                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                    dataSnapshot.key?.let {
-                        handleFetchUserById(it, emitter, Constant.ACTION_REMOVE)
-                    }
-                }
-            })
-    }
-
-    private fun handleFetchFriendRequest(id: String, emitter: ObservableEmitter<User>) {
-        mDatabase.child(Constant.KeyDatabase.Friend.FRIEND_REQUEST).child(id)
-            .addChildEventListener(object : ChildEventListener {
-                override fun onCancelled(dataSnapshot: DatabaseError) {
-                    emitter.onError(dataSnapshot.toException())
-                }
-
-                override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                }
-
-                override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                }
-
-                override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                    dataSnapshot.key?.let {
-                        if (dataSnapshot.getValue(String::class.java) == Constant.KeyDatabase.Friend.TYPE_REQUEST_RECEIVED) {
-                            handleFetchUserById(it, emitter, Constant.ACTION_ADD)
-                        }
-                    }
-                }
-
-                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                    dataSnapshot.key?.let {
-                        handleFetchUserById(it, emitter, Constant.ACTION_REMOVE)
-                    }
-                }
-            })
-    }
-
-    private fun handleFetchUserById(id: String, emitter: ObservableEmitter<User>, action: String) {
-        var tmpAction = action
-        mDatabase.child(Constant.KeyDatabase.User.USER).child(id)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onCancelled(dataSnapshot: DatabaseError) {
-                }
-
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    dataSnapshot.getValue(User::class.java)?.let {
-                        tmpAction = when (tmpAction) {
-                            Constant.ACTION_ADD -> {
-                                it.action = Constant.ACTION_ADD
-                                emitter.onNext(it)
-                                ""
-                            }
-                            Constant.ACTION_REMOVE -> {
-                                it.action = Constant.ACTION_REMOVE
-                                emitter.onNext(it)
-                                ""
-                            }
-                            else -> {
-                                it.action = Constant.ACTION_CHANGE
-                                emitter.onNext(it)
-                                ""
-                            }
-                        }
                     }
                 }
             })

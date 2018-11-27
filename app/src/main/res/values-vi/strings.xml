@@ -36,4 +36,13 @@
     <string name="accept">Chấp nhận</string>
     <string name="reject">Từ chối</string>
     <string name="msg_error_something_wrong">Có vấn đề xảy ra.</string>
+    <string name="group_title">Tiêu đề</string>
+    <string name="group_description">Mô tả</string>
+    <string name="group_member">Thành viên</string>
+    <string name="group">Nhóm</string>
+    <string name="member">Thành Viên</string>
+    <string name="add">Thêm</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="action_add_group">Tạo Nhóm</string>
+    <string name="action_add_member">Thêm Thành Viên</string>
 </resources>
