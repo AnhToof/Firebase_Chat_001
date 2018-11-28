@@ -12,7 +12,7 @@ import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.validator.Validator
 import kotlinx.android.synthetic.main.fragment_register.view.*
@@ -23,7 +23,7 @@ class RegisterFragment : Fragment(), RegisterContract.View {
     @Inject
     internal lateinit var mValidator: Validator
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: RegisterPresenter
     private lateinit var mView: View
     private lateinit var mProgressDialog: ProgressDialog

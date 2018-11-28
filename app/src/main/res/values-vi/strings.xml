@@ -18,6 +18,7 @@
     <string name="contain_special_char">- Chứa ký tự đặc biệt.</string>
     <string name="contain_invalid_word">- Chứa ký tự không hợp lệ.</string>
     <string name="msg_register_successfully">Đăng ký thành công!</string>
+    <string name="please_input_title_group">Vui lòng nhập tiêu đề nhóm chat</string>
 
     <string name="msg_logging_in">Đang đăng nhập…</string>
     <string name="msg_registering">Đang đăng ký…</string>
@@ -45,4 +46,6 @@
     <string name="edit">Chỉnh sửa</string>
     <string name="action_add_group">Tạo Nhóm</string>
     <string name="action_add_member">Thêm Thành Viên</string>
+    <string name="msg_creating_group">Đang tạo nhóm…</string>
+    <string name="msg_session_expired">Phiên làm việc hết hạn. Vui lòng đăng nhập lại!</string>
 </resources>

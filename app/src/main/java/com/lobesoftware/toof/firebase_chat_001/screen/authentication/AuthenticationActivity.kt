@@ -8,7 +8,7 @@ import android.view.View
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.login.LoginFragment
 import kotlinx.android.synthetic.main.activity_authentication.*
 import javax.inject.Inject
@@ -16,7 +16,7 @@ import javax.inject.Inject
 class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View {
 
     @Inject
-    internal lateinit var mUserRepository: UserRepositoryImpl
+    internal lateinit var mUserRepository: UserRepository
     private lateinit var mPresenter: AuthenticationPresenter
     private lateinit var mNavigator: AuthenticationNavigator
 

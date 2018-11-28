@@ -1,43 +1,37 @@
-package com.lobesoftware.toof.firebase_chat_001.screen.main.chat
+package com.lobesoftware.toof.firebase_chat_001.screen.main.add_member
 
-import com.lobesoftware.toof.firebase_chat_001.data.model.Group
+import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class ChatPresenter : ChatContract.Presenter {
+class AddMemberPresenter : AddMemberContract.Presenter {
 
-    private var mView: ChatContract.View? = null
+    private var mView: AddMemberContract.View? = null
     private lateinit var mUserRepository: UserRepository
     private val mCompositeDisposable = CompositeDisposable()
 
-    override fun fetchConversations() {
+    override fun fetchMembers() {
         handleCheckCurrentUser { view, id ->
-            val disposable = mUserRepository.fetchConversations(id)
+            val disposable = mUserRepository.fetchMembers(id)
                 .flatMap {
-                    it.action?.let { action ->
-                        mUserRepository.fetchConversationsInformation(id, it, action)
-                    }
-                }
-                .flatMap {
-                    mUserRepository.fetchUserGroupById(it)
+                    mUserRepository.fetchUserById(it)
                 }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ group ->
-                    when (group.action) {
+                .subscribe({
+                    when (it.action) {
                         Constant.ACTION_ADD -> {
-                            view.onConversationAdded(group)
+                            view.onMemberAdded(it)
                         }
                         Constant.ACTION_REMOVE -> {
-                            view.onConversationRemoved(group)
+                            view.onMemberRemoved(it)
                         }
                         Constant.ACTION_CHANGE -> {
-                            view.onConversationChanged(group)
+                            view.onMemberChanged(it)
                         }
                     }
                 }, {
@@ -47,18 +41,18 @@ class ChatPresenter : ChatContract.Presenter {
         }
     }
 
-    override fun filterConversation(searchText: String, conversations: ArrayList<Group>) {
+    override fun filterMembers(searchText: String, members: ArrayList<User>) {
         mView?.let { view ->
-            val disposable = Observable.just(conversations)
+            val disposable = Observable.just(members)
                 .flatMapIterable { it }
                 .filter {
-                    it.title.toString().toLowerCase().contains(searchText.toLowerCase())
+                    it.fullName.toString().toLowerCase().contains(searchText.toLowerCase())
                 }
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    view.onFilterConversationSuccess(it)
+                    view.onFilterMemberSuccess(it)
                 }, {
                     view.onFetchFail()
                 })
@@ -66,7 +60,7 @@ class ChatPresenter : ChatContract.Presenter {
         }
     }
 
-    override fun setView(view: ChatContract.View) {
+    override fun setView(view: AddMemberContract.View) {
         mView = view
     }
 
@@ -85,7 +79,7 @@ class ChatPresenter : ChatContract.Presenter {
         mUserRepository = userRepository
     }
 
-    private fun handleCheckCurrentUser(function: (view: ChatContract.View, id: String) -> Unit) {
+    private fun handleCheckCurrentUser(function: (view: AddMemberContract.View, id: String) -> Unit) {
         mView?.let { view ->
             val disposable = mUserRepository.getCurrentUser()
                 .subscribeOn(Schedulers.io())

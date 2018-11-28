@@ -1,6 +1,6 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.profile
 
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
+import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -8,7 +8,7 @@ import io.reactivex.schedulers.Schedulers
 class ProfilePresenter : ProfileContract.Presenter {
 
     private var mView: ProfileContract.View? = null
-    private lateinit var mUserRepository: UserRepositoryImpl
+    private lateinit var mUserRepository: UserRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun setView(view: ProfileContract.View) {
@@ -47,7 +47,7 @@ class ProfilePresenter : ProfileContract.Presenter {
         }
     }
 
-    fun setUserRepository(userRepository: UserRepositoryImpl) {
+    fun setUserRepository(userRepository: UserRepository) {
         mUserRepository = userRepository
     }
 }
