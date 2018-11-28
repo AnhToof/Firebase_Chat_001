@@ -48,4 +48,9 @@
     <string name="action_add_member">Thêm Thành Viên</string>
     <string name="msg_creating_group">Đang tạo nhóm…</string>
     <string name="msg_session_expired">Phiên làm việc hết hạn. Vui lòng đăng nhập lại!</string>
+    <string name="friend">Bạn bè</string>
+    <string name="email_does_not_exist">Email không tồn tại</string>
+    <string name="action_sent">Đã gửi</string>
+    <string name="msg_have_a_request_from_user">bạn đang có lời yêu cầu kết bạn từ người dùng đó</string>
+    <string name="msg_already_friend">Đã là bạn của bạn</string>
 </resources>

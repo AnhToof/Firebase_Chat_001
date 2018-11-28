@@ -13,11 +13,15 @@ object Constant {
     const val ACTION_ADD = "Add"
     const val ACTION_REMOVE = "Remove"
     const val ACTION_CHANGE = "Change"
+    const val ACTION_SENT = "Sent"
+    const val ACTION_RECEIVED = "Received"
+    const val ACTION_FRIEND = "Friend"
 
     object KeyDatabase {
         object User {
             const val USER = "users"
             const val GROUP = "groups"
+            const val EMAIL = "email"
         }
 
         object Friend {
