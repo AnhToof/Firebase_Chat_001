@@ -14,6 +14,7 @@ import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
+import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
@@ -25,6 +26,8 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
 
     @Inject
     internal lateinit var mUserRepository: UserRepository
+    @Inject
+    internal lateinit var mGroupRepository: GroupRepository
     private lateinit var mPresenter: ChatPresenter
     private lateinit var mAdapter: ChatAdapter
     private lateinit var mView: View
@@ -44,14 +47,9 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
         savedInstanceState: Bundle?
     ): View? {
         mView = inflater.inflate(R.layout.fragment_chat, container, false)
-
         setHasOptionsMenu(true)
         setUpConversationRecyclerView()
-        mPresenter = ChatPresenter()
-        mPresenter.apply {
-            setView(this@ChatFragment)
-            setUserRepository(mUserRepository)
-        }
+        mPresenter = ChatPresenter(this, mUserRepository, mGroupRepository)
         (activity as? MainActivity)?.let {
             mNavigator = ChatNavigatorImpl(it)
         }
@@ -83,7 +81,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     }
 
     override fun onItemClick(view: View, item: Group, position: Int) {
-        TODO("Open conversation")
+        mNavigator.goToConversationDetail(item)
     }
 
     override fun onCheckCurrentUserFail() {

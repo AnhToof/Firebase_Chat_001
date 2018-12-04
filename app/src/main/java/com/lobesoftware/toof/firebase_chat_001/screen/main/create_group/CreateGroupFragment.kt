@@ -15,6 +15,7 @@ import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.extension.toast
+import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
@@ -29,6 +30,8 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     internal lateinit var mValidator: Validator
     @Inject
     internal lateinit var mUserRepository: UserRepository
+    @Inject
+    internal lateinit var mGroupRepository: GroupRepository
     private lateinit var mView: View
     private lateinit var mNavigator: CreateGroupNavigator
     private lateinit var mPresenter: CreateGroupPresenter
@@ -50,12 +53,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     ): View? {
         setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_create_group, container, false)
-        mPresenter = CreateGroupPresenter()
-        mPresenter.apply {
-            setView(this@CreateGroupFragment)
-            setUserRepository(mUserRepository)
-            setValidator(mValidator)
-        }
+        mPresenter = CreateGroupPresenter(this, mUserRepository, mGroupRepository, mValidator)
         initViews()
         handleEvents()
         return mView

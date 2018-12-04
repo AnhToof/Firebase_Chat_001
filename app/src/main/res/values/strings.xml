@@ -52,4 +52,8 @@
     <string name="action_sent">Sent</string>
     <string name="msg_have_a_request_from_user">You have a friend request from that user</string>
     <string name="msg_already_friend">Already your friend</string>
+    <string name="hint_tape_message">Tape a message</string>
+    <string name="edit_group">Edit group</string>
+    <string name="description">Description</string>
+    <string name="leave_group">Leave group</string>
 </resources>

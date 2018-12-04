@@ -53,4 +53,8 @@
     <string name="action_sent">Đã gửi</string>
     <string name="msg_have_a_request_from_user">bạn đang có lời yêu cầu kết bạn từ người dùng đó</string>
     <string name="msg_already_friend">Đã là bạn của bạn</string>
+    <string name="hint_tape_message">Nhập tin nhắn</string>
+    <string name="edit_group">Sửa nhóm chat</string>
+    <string name="description">Mô tả</string>
+    <string name="leave_group">Rời nhóm</string>
 </resources>

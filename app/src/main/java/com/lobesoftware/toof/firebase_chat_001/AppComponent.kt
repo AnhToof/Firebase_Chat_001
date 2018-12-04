@@ -8,6 +8,7 @@ import com.lobesoftware.toof.firebase_chat_001.screen.authentication.register.Re
 import com.lobesoftware.toof.firebase_chat_001.screen.main.add_friend.AddFriendFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.add_member.AddMemberFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat.ChatFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail.ChatDetailFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.friend.FriendFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.profile.ProfileFragment
@@ -37,4 +38,6 @@ interface AppComponent {
     fun inject(createGroupFragment: CreateGroupFragment)
 
     fun inject(addFriendFragment: AddFriendFragment)
+
+    fun inject(chatDetailFragment: ChatDetailFragment)
 }
