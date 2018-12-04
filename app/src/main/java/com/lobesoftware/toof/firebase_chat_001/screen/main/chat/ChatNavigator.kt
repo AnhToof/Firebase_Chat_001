@@ -13,7 +13,7 @@ interface ChatNavigator {
 
     fun goToAuthenticationScreen()
 
-    fun goToCreateGroupScreen(fragment: ChatFragment)
+    fun goToCreateGroupScreen()
 }
 
 class ChatNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), ChatNavigator {
@@ -22,7 +22,7 @@ class ChatNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), 
         activity.startActivity(AuthenticationActivity.getInstance(activity), removeItself = true)
     }
 
-    override fun goToCreateGroupScreen(fragment: ChatFragment) {
+    override fun goToCreateGroupScreen() {
         (activity as? MainActivity)?.hideBottomNavigation()
         activity.replaceFragment(
             R.id.frame_layout_container,

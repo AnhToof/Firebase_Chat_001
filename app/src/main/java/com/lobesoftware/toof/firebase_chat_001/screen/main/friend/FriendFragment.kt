@@ -85,7 +85,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_add) {
-            TODO("Add function: add friend")
+            mNavigator.goToAddFriendScreen()
         }
         return super.onOptionsItemSelected(item)
     }

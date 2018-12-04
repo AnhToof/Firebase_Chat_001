@@ -67,7 +67,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_add) {
-            mNavigator.goToCreateGroupScreen(this)
+            mNavigator.goToCreateGroupScreen()
         }
         return super.onOptionsItemSelected(item)
     }

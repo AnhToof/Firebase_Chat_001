@@ -39,6 +39,14 @@ interface UserRepository {
     fun fetchUserById(user: User): Observable<User>
 
     fun createGroup(currentId: String, group: Group): Completable
+
+    fun searchUserByEmail(currentId: String, email: String): Single<User?>
+
+    fun requestFriend(currentId: String, friendId: String): Completable
+
+    fun checkFriend(currentId: String, user: User): Single<User>
+
+    fun checkRequestedFriend(currentId: String, user: User): Single<User>
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -454,6 +462,106 @@ class UserRepositoryImpl : UserRepository {
                     }
                     emitter.onError(NullPointerException())
                 }
+        }
+    }
+
+    override fun searchUserByEmail(currentId: String, email: String): Single<User?> {
+        return Single.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.User.USER)
+                .orderByChild(Constant.KeyDatabase.User.EMAIL)
+                .equalTo(email)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            dataSnapshot.children.first().getValue(User::class.java)?.let {
+                                emitter.onSuccess(it)
+                            }
+                        } else {
+                            emitter.onError(NullPointerException())
+                        }
+                    }
+                })
+        }
+    }
+
+    override fun requestFriend(currentId: String, friendId: String): Completable {
+        return Completable.create { emitter ->
+            val childUpdates = HashMap<String, Any?>()
+            childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$currentId/$friendId"] =
+                    Constant.KeyDatabase.Friend.TYPE_REQUEST_SENT
+            childUpdates["/${Constant.KeyDatabase.Friend.FRIEND_REQUEST}/$friendId/$currentId"] =
+                    Constant.KeyDatabase.Friend.TYPE_REQUEST_RECEIVED
+            mDatabase.updateChildren(childUpdates)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        emitter.onComplete()
+                        return@addOnCompleteListener
+                    }
+                    it.exception?.let { exception ->
+                        emitter.onError(exception)
+                        return@addOnCompleteListener
+                    }
+                    emitter.onError(NullPointerException())
+                }
+        }
+    }
+
+    override fun checkFriend(currentId: String, user: User): Single<User> {
+        return Single.create { emitter ->
+            val userId = user.id
+            if (userId == null) {
+                emitter.onError(NullPointerException())
+            } else {
+                mDatabase.child(Constant.KeyDatabase.Friend.FRIENDSHIP).child(currentId).child(userId)
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onCancelled(dataSnapshot: DatabaseError) {
+                            emitter.onError(dataSnapshot.toException())
+                        }
+
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            if (dataSnapshot.key == user.id && dataSnapshot.value == true) {
+                                user.action = Constant.ACTION_FRIEND
+                            }
+                            emitter.onSuccess(user)
+                        }
+                    })
+            }
+        }
+    }
+
+    override fun checkRequestedFriend(currentId: String, user: User): Single<User> {
+        return Single.create { emitter ->
+            if (user.action == Constant.ACTION_FRIEND) {
+                emitter.onSuccess(user)
+            } else {
+                val userId = user.id
+                if (userId == null) {
+                    emitter.onError(NullPointerException())
+                } else {
+                    mDatabase.child(Constant.KeyDatabase.Friend.FRIEND_REQUEST).child(currentId).child(userId)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onCancelled(dataSnapshot: DatabaseError) {
+                                emitter.onError(dataSnapshot.toException())
+                            }
+
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                user.action = Constant.ACTION_ADD
+                                dataSnapshot.getValue(String::class.java)?.let {
+                                    if (it == Constant.KeyDatabase.Friend.TYPE_REQUEST_SENT) {
+                                        user.action = Constant.ACTION_SENT
+                                    } else {
+                                        user.action = Constant.ACTION_RECEIVED
+                                    }
+                                }
+                                emitter.onSuccess(user)
+                            }
+                        })
+                }
+            }
         }
     }
 
