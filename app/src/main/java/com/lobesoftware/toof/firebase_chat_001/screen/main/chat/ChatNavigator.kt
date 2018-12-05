@@ -10,6 +10,7 @@ import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail.ChatDetailFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.utils.BaseNavigator
+import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 
 interface ChatNavigator {
 
@@ -30,7 +31,7 @@ class ChatNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), 
         (activity as? MainActivity)?.hideBottomNavigation()
         activity.replaceFragment(
             R.id.frame_layout_container,
-            CreateGroupFragment.getInstance(activity.getString(R.string.add)),
+            CreateGroupFragment.getInstance(Constant.ScreenType.ADD, null),
             true
         )
     }

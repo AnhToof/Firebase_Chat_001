@@ -125,6 +125,7 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
     }
 
     private fun initViews() {
+        setUpConversationRecyclerView()
         (activity as? MainActivity)?.let {
             arguments?.let { args ->
                 it.supportActionBar?.title =
@@ -133,7 +134,6 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
             it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             mNavigator = AddMemberNavigatorImpl(activity as AppCompatActivity)
         }
-        setUpConversationRecyclerView()
     }
 
     private fun setUpConversationRecyclerView() {

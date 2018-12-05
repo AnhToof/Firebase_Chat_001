@@ -45,7 +45,6 @@ class UserRepositoryImpl : UserRepository {
     private val mFirebaseAuth = FirebaseAuth.getInstance()
     private val mDatabase = FirebaseDatabase.getInstance().reference
 
-
     override fun loginWithEmailAndPassword(email: String, password: String): Single<User> {
         return Single.create { emitter ->
             mFirebaseAuth.signInWithEmailAndPassword(email, password)

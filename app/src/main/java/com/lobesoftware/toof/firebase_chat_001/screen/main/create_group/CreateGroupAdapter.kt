@@ -31,7 +31,12 @@ class CreateGroupAdapter(private val context: Context) : RecyclerView.Adapter<Cr
         mListener = listener
     }
 
+    fun getListMembers(): List<User> {
+        return mMembers
+    }
+
     fun setListMembers(members: List<User>) {
+        mMembers.clear()
         mMembers.addAll(members)
         notifyDataSetChanged()
     }

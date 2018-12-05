@@ -1,5 +1,7 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail
 
+import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -34,7 +36,13 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
     private lateinit var mPresenter: ChatDetailPresenter
     private lateinit var mNavigator: ChatDetailNavigator
     private lateinit var mAdapter: ChatDetailAdapter
+    private lateinit var mProgressDialog: ProgressDialog
     private var mGroup: Group? = null
+
+    enum class GroupType(val value: Boolean) {
+        PRIVATE(false),
+        GROUP(true)
+    }
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -64,7 +72,11 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_option_chat_detail, menu)
+        mGroup?.let {
+            if (it.type == GroupType.GROUP.value) {
+                inflater.inflate(R.menu.menu_option_chat_detail, menu)
+            }
+        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -93,13 +105,17 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
                 mNavigator.backToChatScreen()
             }
             R.id.action_description -> {
-                TODO("OPEN DESCRIPTION SCREEN")
+                mGroup?.let {
+                    mNavigator.goToDescriptionScreen(it)
+                }
             }
             R.id.action_edit_group -> {
-                TODO("OPEN EDIT GROUP SCREEN")
+                mGroup?.let {
+                    mNavigator.goToEditGroupScreen(it)
+                }
             }
             R.id.action_leave_group -> {
-                TODO("LEAVE GROUP FUNCTION")
+                showDialogConfirmLeaveGroup()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -112,8 +128,16 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         mNavigator.goToAuthenticationScreen()
     }
 
-    override fun onFetchFail() {
-        (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
+    override fun onFetchGroupInformationSuccess(group: Group) {
+        mGroup = group
+    }
+
+    override fun onFetchFail(error: Throwable) {
+        if (error == NullPointerException()) {
+            (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
+        } else {
+            (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
+        }
     }
 
     override fun onFetchUsersInGroupSuccess(users: List<User>) {
@@ -123,9 +147,21 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         }
     }
 
+    override fun onLeaveGroupSuccess() {
+        mNavigator.backToChatScreen()
+    }
+
     override fun onMessageAdded(message: Message) {
         mAdapter.addMessage(message)
         recycler_view_chat.scrollToPosition(0)
+    }
+
+    override fun showProgressDialog() {
+        mProgressDialog.show()
+    }
+
+    override fun hideProgressDialog() {
+        mProgressDialog.dismiss()
     }
 
     private fun initViews() {
@@ -139,10 +175,14 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
             it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
         setUpRecyclerView()
+        setUpProgressDialog()
     }
 
     private fun setUpData() {
         mGroup?.let {
+            it.id?.let { id ->
+                mPresenter.fetchGroupInformation(id)
+            }
             mPresenter.fetchUsersInGroup(it)
         }
     }
@@ -161,6 +201,11 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         }
     }
 
+    private fun setUpProgressDialog() {
+        mProgressDialog = ProgressDialog(activity)
+        mProgressDialog.setMessage(getString(R.string.msg_delete_group))
+    }
+
     private fun handleEvents() {
         mView.image_send.setOnClickListener {
             if (mView.edit_message.text.trim().isNotBlank()) {
@@ -173,6 +218,23 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
                 mView.edit_message.text.clear()
             }
         }
+    }
+
+    private fun showDialogConfirmLeaveGroup() {
+        val dialogBuilder = AlertDialog.Builder(context)
+        dialogBuilder.setMessage(getString(R.string.alert_leave_group))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.alert_ok)) { _, _ ->
+                mGroup?.let {
+                    mPresenter.leaveGroup(it)
+                }
+            }
+            .setNegativeButton(getString(R.string.alert_cancel)) { dialog, _ ->
+                dialog.cancel()
+            }
+        val alert = dialogBuilder.create()
+        alert.setTitle(getString(R.string.app_name))
+        alert.show()
     }
 
     companion object {

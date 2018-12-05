@@ -15,11 +15,32 @@ class CreateGroupPresenter(
     validator: Validator
 ) : CreateGroupContact.Presenter {
 
-    private var mView: CreateGroupContact.View? = null
+    private var mView: CreateGroupContact.View? = view
     private val mUserRepository = userRepository
     private val mGroupRepository = groupRepository
     private val mValidator = validator
     private val mCompositeDisposable = CompositeDisposable()
+
+    override fun fetchMembers(group: Group) {
+        mView?.let { view ->
+            val errorMessageValidate = validate(group)
+            errorMessageValidate?.let {
+                view.onInputDataInValid(errorMessageValidate)
+                return
+            }
+            handleValidateAndCheckCurrentUser { id ->
+                val disposable = mGroupRepository.fetchUsersInGroup(id, group)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        view.onFetchMembersSuccess(it)
+                    }, {
+                        view.onCreateGroupFail(it)
+                    })
+                mCompositeDisposable.add(disposable)
+            }
+        }
+    }
 
     override fun createGroup(group: Group) {
         mView?.let { view ->
@@ -39,9 +60,38 @@ class CreateGroupPresenter(
                     .subscribe({
                         view.onCreateGroupSuccess()
                     }, {
-                        view.onCheckCurrentUserFail()
+                        view.onCreateGroupFail(it)
                     })
                 mCompositeDisposable.add(disposable)
+            }
+        }
+    }
+
+    override fun updateGroup(group: Group) {
+        mView?.let { view ->
+            val errorMessageValidate = validate(group)
+            errorMessageValidate?.let {
+                view.onInputDataInValid(errorMessageValidate)
+                return
+            }
+            handleValidateAndCheckCurrentUser { id ->
+                if (group.id == null) {
+                    view.onCreateGroupFail(NullPointerException())
+                } else {
+                    view.showProgressDialog()
+                    val disposable = mGroupRepository.updateGroup(id, group)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doAfterTerminate {
+                            view.hideProgressDialog()
+                        }
+                        .subscribe({
+                            view.onCreateGroupSuccess()
+                        }, {
+                            view.onCreateGroupFail(it)
+                        })
+                    mCompositeDisposable.add(disposable)
+                }
             }
         }
     }
