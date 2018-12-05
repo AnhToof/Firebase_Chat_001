@@ -37,6 +37,15 @@ object Constant {
             const val TYPE = "type"
             const val MEMBER = "members"
         }
+
+        object Message {
+            const val MESSAGES = "messages"
+            const val MESSAGE = "content"
+            const val TYPE = "type"
+            const val TYPE_TEXT = "text"
+            const val TYPE_IMAGE = "image"
+            const val TIMESTAMP = "timestamp"
+        }
     }
 
     object RequestCode {
@@ -45,5 +54,9 @@ object Constant {
 
     object ResultCode {
         const val RESULT_OK = 9
+    }
+
+    object DateTimeFormat {
+        const val DATE_MESSAGE = "yyyy/MM/dd HH:mm"
     }
 }

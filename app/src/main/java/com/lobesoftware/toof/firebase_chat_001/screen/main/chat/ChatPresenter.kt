@@ -1,34 +1,40 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.chat
 
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
+import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
-import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepositoryImpl
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class ChatPresenter : ChatContract.Presenter {
+class ChatPresenter(
+    view: ChatContract.View,
+    userRepository: UserRepository,
+    groupRepository: GroupRepository
+) : ChatContract.Presenter {
 
-    private var mView: ChatContract.View? = null
-    private lateinit var mUserRepository: UserRepository
+    private var mView: ChatContract.View? = view
+    private val mUserRepository = userRepository
+    private val mGroupRepository = groupRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun fetchConversations() {
         handleCheckCurrentUser { view, id ->
-            val disposable = mUserRepository.fetchConversations(id)
+            val disposable = mGroupRepository.fetchConversations(id)
                 .flatMap {
                     it.action?.let { action ->
-                        mUserRepository.fetchConversationsInformation(id, it, action)
+                        mGroupRepository.fetchConversationsInformation(id, it, action)
                     }
                 }
                 .flatMap {
-                    mUserRepository.fetchUserGroupById(it)
+                    mGroupRepository.fetchUserGroupById(it)
                 }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ group ->
+                    group.members[id] = true
                     when (group.action) {
                         Constant.ACTION_ADD -> {
                             view.onConversationAdded(group)
@@ -79,10 +85,6 @@ class ChatPresenter : ChatContract.Presenter {
 
     override fun onDestroy() {
         mView = null
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 
     private fun handleCheckCurrentUser(function: (view: ChatContract.View, id: String) -> Unit) {

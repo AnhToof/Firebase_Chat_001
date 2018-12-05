@@ -1,17 +1,24 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.create_group
 
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
+import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.utils.validator.Validator
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class CreateGroupPresenter : CreateGroupContact.Presenter {
+class CreateGroupPresenter(
+    view: CreateGroupContact.View,
+    userRepository: UserRepository,
+    groupRepository: GroupRepository,
+    validator: Validator
+) : CreateGroupContact.Presenter {
 
     private var mView: CreateGroupContact.View? = null
-    private lateinit var mUserRepository: UserRepository
-    private lateinit var mValidator: Validator
+    private val mUserRepository = userRepository
+    private val mGroupRepository = groupRepository
+    private val mValidator = validator
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun createGroup(group: Group) {
@@ -23,7 +30,7 @@ class CreateGroupPresenter : CreateGroupContact.Presenter {
             }
             handleValidateAndCheckCurrentUser { id ->
                 view.showProgressDialog()
-                val disposable = mUserRepository.createGroup(id, group)
+                val disposable = mGroupRepository.createGroup(id, group)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doAfterTerminate {
@@ -52,14 +59,6 @@ class CreateGroupPresenter : CreateGroupContact.Presenter {
 
     override fun onDestroy() {
         mView = null
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
-    }
-
-    fun setValidator(validator: Validator) {
-        mValidator = validator
     }
 
     private fun handleValidateAndCheckCurrentUser(function: (id: String) -> Unit) {

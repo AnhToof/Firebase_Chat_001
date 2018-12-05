@@ -12,4 +12,16 @@ class RepositoryModule {
     fun provideUserRepository(): UserRepository {
         return UserRepositoryImpl()
     }
+
+    @Provides
+    @Singleton
+    fun provideGroupRepository(): GroupRepository {
+        return GroupRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessageRepository(): MessageRepository {
+        return MessageRepositoryImpl()
+    }
 }
