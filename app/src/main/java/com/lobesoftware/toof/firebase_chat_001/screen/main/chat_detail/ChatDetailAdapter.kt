@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.Message
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
+import com.lobesoftware.toof.firebase_chat_001.extension.loadUrl
 import com.lobesoftware.toof.firebase_chat_001.extension.loadUrlWithCircleCropTransform
 import com.lobesoftware.toof.firebase_chat_001.extension.toString
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
@@ -48,6 +49,7 @@ class ChatDetailAdapter(private val context: Context) : RecyclerView.Adapter<Cha
         private val mTextFullName = view.text_full_name
         private val mTextTime = view.text_time
         private val mTextMessage = view.text_message
+        private val mImageMessage = view.image_message
         private val mUsers = users
 
         fun bindViewData(message: Message) {
@@ -56,7 +58,12 @@ class ChatDetailAdapter(private val context: Context) : RecyclerView.Adapter<Cha
                 it.id == message.from_user
             }.fullName
             mTextTime.text = Date(message.timestamp).toString(Constant.DateTimeFormat.DATE_MESSAGE)
-            mTextMessage.text = message.content
+            if (message.message_type == Constant.KeyDatabase.Message.TYPE_TEXT) {
+                mTextMessage.text = message.content
+            } else {
+                mImageMessage.visibility = View.VISIBLE
+                mImageMessage.loadUrl(message.content)
+            }
         }
     }
 }

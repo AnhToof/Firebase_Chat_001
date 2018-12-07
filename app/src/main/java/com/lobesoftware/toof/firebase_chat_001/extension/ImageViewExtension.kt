@@ -11,3 +11,10 @@ fun ImageView.loadUrlWithCircleCropTransform(url: String?) {
         .apply(RequestOptions.circleCropTransform().placeholder(R.drawable.ic_profile))
         .into(this)
 }
+
+fun ImageView.loadUrl(url: String?) {
+    Glide.with(context)
+        .load(url)
+        .apply(RequestOptions().placeholder(R.drawable.ic_thumb))
+        .into(this)
+}

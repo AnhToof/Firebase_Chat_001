@@ -62,4 +62,6 @@
     <string name="alert_ok">OK</string>
     <string name="alert_cancel">Cancel</string>
     <string name="msg_delete_group">Deleting group…</string>
+    <string name="uploading">Uploading…</string>
+    <string name="permission_denied">Permission Denied!</string>
 </resources>

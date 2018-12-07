@@ -1,5 +1,6 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail
 
+import android.net.Uri
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.data.model.Message
 import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
@@ -82,12 +83,10 @@ class ChatDetailPresenter(
 
     override fun sendMessage(group: Group, message: Message) {
         handleCheckCurrentUser { view, id ->
-            val groupId = group.id
-            if (groupId == null) {
+            if (group.id == null) {
                 view.onFetchFail(NullPointerException())
             } else {
-                message.id = id
-                val disposable = mMessageRepository.sendMessage(id, groupId, message)
+                val disposable = mMessageRepository.sendMessage(id, group, message)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
@@ -120,6 +119,24 @@ class ChatDetailPresenter(
                     })
                 mCompositeDisposable.add(disposable)
             }
+        }
+    }
+
+    override fun uploadImage(uri: Uri) {
+        handleCheckCurrentUser { view, _ ->
+            view.showProgressDialog()
+            val disposable = mMessageRepository.uploadImage(uri)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doAfterTerminate {
+                    view.hideProgressDialog()
+                }
+                .subscribe({
+                    view.onUploadSuccess(it)
+                }, {
+                    view.onUploadFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 

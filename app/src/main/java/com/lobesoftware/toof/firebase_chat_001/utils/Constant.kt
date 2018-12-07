@@ -64,4 +64,8 @@ object Constant {
         const val EDIT = "edit"
         const val ADD = "add"
     }
+
+    object KeyStorage {
+        const val IMAGES = "images"
+    }
 }

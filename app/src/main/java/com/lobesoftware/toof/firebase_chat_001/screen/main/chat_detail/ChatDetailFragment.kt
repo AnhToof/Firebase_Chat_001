@@ -1,10 +1,17 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail
 
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -20,6 +27,7 @@ import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.MessageRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
+import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import kotlinx.android.synthetic.main.fragment_chat_detail.*
 import kotlinx.android.synthetic.main.fragment_chat_detail.view.*
 import javax.inject.Inject
@@ -37,6 +45,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
     private lateinit var mNavigator: ChatDetailNavigator
     private lateinit var mAdapter: ChatDetailAdapter
     private lateinit var mProgressDialog: ProgressDialog
+    private val mMessages = ArrayList<Message>()
     private var mGroup: Group? = null
 
     enum class GroupType(val value: Boolean) {
@@ -78,6 +87,13 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
             }
         }
         super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onStart() {
+        mGroup?.let {
+            mPresenter.fetchMessages(it)
+        }
+        super.onStart()
     }
 
     override fun onStop() {
@@ -142,18 +158,32 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
 
     override fun onFetchUsersInGroupSuccess(users: List<User>) {
         mAdapter.setListUsers(users)
-        mGroup?.let {
-            mPresenter.fetchMessages(it)
-        }
     }
 
     override fun onLeaveGroupSuccess() {
         mNavigator.backToChatScreen()
     }
 
+    override fun onUploadFail(error: Throwable) {
+        (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
+    }
+
+    override fun onUploadSuccess(uri: Uri) {
+        mGroup?.let { group ->
+            val message = Message(
+                content = uri.toString(),
+                message_type = Constant.KeyDatabase.Message.TYPE_IMAGE
+            )
+            mPresenter.sendMessage(group, message)
+        }
+    }
+
     override fun onMessageAdded(message: Message) {
-        mAdapter.addMessage(message)
-        recycler_view_chat.scrollToPosition(0)
+        if (!mMessages.contains(message)) {
+            mMessages.add(message)
+            mAdapter.addMessage(message)
+            recycler_view_chat.scrollToPosition(0)
+        }
     }
 
     override fun showProgressDialog() {
@@ -162,6 +192,28 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
 
     override fun hideProgressDialog() {
         mProgressDialog.dismiss()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isEmpty() || grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    (activity as? MainActivity)?.toast(getString(R.string.permission_denied))
+                else
+                    selectImageFile()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == PICK_IMAGE_REQUEST) {
+            data?.data?.let {
+                setUpProgressDialog(getString(R.string.uploading))
+                mPresenter.uploadImage(it)
+            }
+        }
     }
 
     private fun initViews() {
@@ -175,7 +227,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
             it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
         setUpRecyclerView()
-        setUpProgressDialog()
     }
 
     private fun setUpData() {
@@ -201,9 +252,9 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         }
     }
 
-    private fun setUpProgressDialog() {
+    private fun setUpProgressDialog(message: String) {
         mProgressDialog = ProgressDialog(activity)
-        mProgressDialog.setMessage(getString(R.string.msg_delete_group))
+        mProgressDialog.setMessage(message)
     }
 
     private fun handleEvents() {
@@ -218,6 +269,32 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
                 mView.edit_message.text.clear()
             }
         }
+        mView.image_add_image.setOnClickListener {
+            activity?.let { activity ->
+                if (ContextCompat.checkSelfPermission(
+                        activity,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    )
+                    != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        PERMISSION_REQUEST_CODE
+                    )
+                } else {
+                    selectImageFile()
+                }
+            }
+        }
+    }
+
+    private fun selectImageFile() {
+        val intent = Intent().apply {
+            action = Intent.ACTION_GET_CONTENT
+            type = "image/*"
+        }
+        startActivityForResult(Intent.createChooser(intent, "Select Photo"), PICK_IMAGE_REQUEST)
     }
 
     private fun showDialogConfirmLeaveGroup() {
@@ -240,6 +317,8 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
     companion object {
         private const val ARGUMENT_TITLE = "title"
         private const val ARGUMENT_GROUP = "group"
+        private const val PERMISSION_REQUEST_CODE = 999
+        private const val PICK_IMAGE_REQUEST = 909
 
         fun getInstance(title: String, group: Group): ChatDetailFragment {
             val args = Bundle()
