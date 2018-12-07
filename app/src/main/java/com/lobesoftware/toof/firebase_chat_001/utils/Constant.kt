@@ -40,7 +40,7 @@ object Constant {
 
         object Message {
             const val MESSAGES = "messages"
-            const val MESSAGE = "content"
+            const val CONTENT = "content"
             const val TYPE = "type"
             const val TYPE_TEXT = "text"
             const val TYPE_IMAGE = "image"
@@ -58,5 +58,10 @@ object Constant {
 
     object DateTimeFormat {
         const val DATE_MESSAGE = "yyyy/MM/dd HH:mm"
+    }
+
+    object ScreenType {
+        const val EDIT = "edit"
+        const val ADD = "add"
     }
 }

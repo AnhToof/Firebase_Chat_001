@@ -12,13 +12,17 @@ interface GroupRepository {
 
     fun fetchConversations(currentId: String): Observable<Group>
 
-    fun fetchConversationsInformation(currentId: String, group: Group, action: String): Observable<Group>
+    fun fetchConversationsInformation(currentId: String, groupId: String?, action: String?): Observable<Group>
 
-    fun fetchUserGroupById(group: Group): Observable<Group>
+    fun fetchUserGroupById(currentId: String, group: Group): Observable<Group>
 
     fun createGroup(currentId: String, group: Group): Completable
 
+    fun updateGroup(currentId: String, group: Group): Completable
+
     fun fetchUsersInGroup(currentId: String, group: Group): Single<List<User>>
+
+    fun leaveGroup(currentId: String, group: Group): Completable
 }
 
 class GroupRepositoryImpl : GroupRepository {
@@ -59,7 +63,11 @@ class GroupRepositoryImpl : GroupRepository {
         }
     }
 
-    override fun fetchConversationsInformation(currentId: String, group: Group, action: String): Observable<Group> {
+    override fun fetchConversationsInformation(
+        currentId: String,
+        groupId: String?,
+        action: String?
+    ): Observable<Group> {
         return Observable.create { emitter ->
             mDatabase.child(Constant.KeyDatabase.Group.GROUP)
                 .addChildEventListener(object : ChildEventListener {
@@ -71,7 +79,7 @@ class GroupRepositoryImpl : GroupRepository {
                     }
 
                     override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                        if (dataSnapshot.key == group.id) {
+                        if (dataSnapshot.key == groupId) {
                             dataSnapshot.getValue(Group::class.java)?.let { changedGroup ->
                                 changedGroup.action = Constant.ACTION_CHANGE
                                 emitter.onNext(changedGroup)
@@ -80,27 +88,16 @@ class GroupRepositoryImpl : GroupRepository {
                     }
 
                     override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                        if (dataSnapshot.key == group.id) {
+                        if (dataSnapshot.key == groupId) {
                             dataSnapshot.getValue(Group::class.java)?.let { addedGroup ->
-                                when (action) {
-                                    Constant.ACTION_ADD -> {
-                                        addedGroup.action = action
-                                        if (addedGroup.type == GroupType.PRIVATE.value) {
-                                            addedGroup.members.remove(currentId)
-                                        }
-                                    }
-                                    Constant.ACTION_REMOVE -> {
-                                        addedGroup.action = action
-                                        TODO("Add later")
-                                    }
-                                }
+                                addedGroup.action = action
                                 emitter.onNext(addedGroup)
                             }
                         }
                     }
 
                     override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                        if (dataSnapshot.key == group.id) {
+                        if (dataSnapshot.key == groupId) {
                             dataSnapshot.getValue(Group::class.java)?.let { removedGroup ->
                                 removedGroup.action = Constant.ACTION_REMOVE
                                 emitter.onNext(removedGroup)
@@ -138,7 +135,26 @@ class GroupRepositoryImpl : GroupRepository {
         }
     }
 
-    override fun fetchUserGroupById(group: Group): Observable<Group> {
+    override fun updateGroup(currentId: String, group: Group): Completable {
+        return Completable.create { emitter ->
+            val childUpdates = HashMap<String, Any?>()
+            childUpdates["/${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = group
+            mDatabase.updateChildren(childUpdates)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        emitter.onComplete()
+                        return@addOnCompleteListener
+                    }
+                    it.exception?.let { exception ->
+                        emitter.onError(exception)
+                        return@addOnCompleteListener
+                    }
+                    emitter.onError(NullPointerException())
+                }
+        }
+    }
+
+    override fun fetchUserGroupById(currentId: String, group: Group): Observable<Group> {
         return Observable.create { emitter ->
             if (group.type == GroupType.GROUP.value) {
                 emitter.onNext(group)
@@ -153,7 +169,10 @@ class GroupRepositoryImpl : GroupRepository {
                         }
 
                         override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                            if (dataSnapshot.key == group.members.keys.first()) {
+                            val userId = group.members.keys.first {
+                                it != currentId
+                            }
+                            if (dataSnapshot.key == userId) {
                                 dataSnapshot.getValue(User::class.java)?.let { changedUser ->
                                     group.title = changedUser.fullName
                                     group.action = Constant.ACTION_CHANGE
@@ -163,7 +182,10 @@ class GroupRepositoryImpl : GroupRepository {
                         }
 
                         override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                            if (dataSnapshot.key == group.members.keys.first()) {
+                            val userId = group.members.keys.first {
+                                it != currentId
+                            }
+                            if (dataSnapshot.key == userId) {
                                 dataSnapshot.getValue(User::class.java)?.let { addedUser ->
                                     group.title = addedUser.fullName
                                     group.action = Constant.ACTION_ADD
@@ -173,13 +195,21 @@ class GroupRepositoryImpl : GroupRepository {
                         }
 
                         override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                            TODO("Remove related user (Ex: friend, group,....)")
+                            val userId = group.members.keys.first {
+                                it != currentId
+                            }
+                            if (dataSnapshot.key == userId) {
+                                dataSnapshot.getValue(User::class.java)?.let { removedUser ->
+                                    group.title = removedUser.fullName
+                                    group.action = Constant.ACTION_REMOVE
+                                    emitter.onNext(group)
+                                }
+                            }
                         }
                     })
             }
         }
     }
-
 
     override fun fetchUsersInGroup(currentId: String, group: Group): Single<List<User>> {
         return Single.create { emitter ->
@@ -194,6 +224,7 @@ class GroupRepositoryImpl : GroupRepository {
                         for (snap in dataSnapshot.children) {
                             snap.getValue(User::class.java)?.let { user ->
                                 if (group.members.containsKey(user.id)) {
+                                    user.action = Constant.ACTION_ADD
                                     users.add(user)
                                 }
                             }
@@ -201,6 +232,33 @@ class GroupRepositoryImpl : GroupRepository {
                         emitter.onSuccess(users)
                     }
                 })
+        }
+    }
+
+    override fun leaveGroup(currentId: String, group: Group): Completable {
+        return Completable.create { emitter ->
+            val childUpdates = HashMap<String, Any?>()
+            childUpdates["/${Constant.KeyDatabase.User.USER}/$currentId/${Constant.KeyDatabase.User.GROUP}/${group.id}"] =
+                    null
+            if (group.members.keys.size == 1) {
+                childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = null
+                childUpdates["/${Constant.KeyDatabase.Message.MESSAGES}/${group.id}"] = null
+            } else {
+                childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}/${Constant.KeyDatabase.Group.MEMBER}/$currentId"] =
+                        null
+            }
+            mDatabase.updateChildren(childUpdates)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        emitter.onComplete()
+                        return@addOnCompleteListener
+                    }
+                    it.exception?.let { exception ->
+                        emitter.onError(exception)
+                        return@addOnCompleteListener
+                    }
+                    emitter.onError(NullPointerException())
+                }
         }
     }
 }

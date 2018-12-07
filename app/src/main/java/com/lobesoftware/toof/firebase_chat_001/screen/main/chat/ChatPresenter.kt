@@ -25,16 +25,15 @@ class ChatPresenter(
             val disposable = mGroupRepository.fetchConversations(id)
                 .flatMap {
                     it.action?.let { action ->
-                        mGroupRepository.fetchConversationsInformation(id, it, action)
+                        mGroupRepository.fetchConversationsInformation(id, it.id, action)
                     }
                 }
                 .flatMap {
-                    mGroupRepository.fetchUserGroupById(it)
+                    mGroupRepository.fetchUserGroupById(id, it)
                 }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ group ->
-                    group.members[id] = true
                     when (group.action) {
                         Constant.ACTION_ADD -> {
                             view.onConversationAdded(group)

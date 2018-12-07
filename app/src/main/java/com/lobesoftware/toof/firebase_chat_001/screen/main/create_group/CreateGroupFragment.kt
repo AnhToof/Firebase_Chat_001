@@ -38,12 +38,23 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     private lateinit var mAdapter: CreateGroupAdapter
     private var mMembers = ArrayList<User>()
     private lateinit var mProgressDialog: ProgressDialog
+    private var mScreenType: String? = null
+    private var mGroup: Group? = null
+    private var mGroupId: String? = null
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         val app = activity?.application
         if (app is MainApplication) {
             app.mAppComponent.inject(this@CreateGroupFragment)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let { args ->
+            mScreenType = args.getString(ARGUMENT_SCREEN_TYPE)
+            mGroup = args.getParcelable(ARGUMENT_GROUP)
         }
     }
 
@@ -76,13 +87,19 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     }
 
     override fun onDetach() {
-        mNavigator.backToChatScreen()
+        if (mScreenType == Constant.ScreenType.ADD) {
+            (activity as? MainActivity)?.let {
+                it.showBottomNavigation()
+                it.supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                it.supportActionBar?.title = it.getString(R.string.title_chat_screen)
+            }
+        }
         super.onDetach()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
-            mNavigator.backToChatScreen()
+            mNavigator.backToPreviousScreen()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -91,6 +108,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Constant.ResultCode.RESULT_OK && requestCode == Constant.RequestCode.REQUEST_CODE) {
             data?.let {
+                mGroup = null
                 mMembers = it.getParcelableArrayListExtra(EXTRA_ARRAY)
                 mAdapter.setListMembers(mMembers)
             }
@@ -116,12 +134,21 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
         mNavigator.goToAuthenticationScreen()
     }
 
-    override fun onCreateGroupSuccess() {
-        mNavigator.backToChatScreen()
+    override fun onFetchMembersSuccess(members: List<User>) {
+        mAdapter.setListMembers(members)
+        mMembers.addAll(mAdapter.getListMembers())
     }
 
-    override fun onCreateGroupFail() {
-        (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
+    override fun onCreateGroupSuccess() {
+        mNavigator.backToPreviousScreen()
+    }
+
+    override fun onCreateGroupFail(error: Throwable) {
+        if (error == NullPointerException()) {
+            (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
+        } else {
+            (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
+        }
     }
 
     override fun onInputDataInValid(errorMessage: String?) {
@@ -132,15 +159,28 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
 
     private fun initViews() {
         (activity as? MainActivity)?.let {
-            arguments?.let { args ->
-                it.supportActionBar?.title =
-                        "${args[ARGUMENT_TITLE]} ${activity?.getString(R.string.group)}"
-            }
             it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             mNavigator = CreateGroupNavigatorImpl(it)
+            setUpRecyclerView()
+            when (mScreenType) {
+                Constant.ScreenType.ADD -> {
+                    it.supportActionBar?.title = "${it.getString(R.string.add)} ${it.getString(R.string.group)}"
+                    setUpProgressDialog(it.getString(R.string.msg_creating_group))
+                    mView.button_add_group.text = it.getText(R.string.action_add_group)
+                }
+                else -> {
+                    it.supportActionBar?.title = "${it.getString(R.string.edit)} ${it.getString(R.string.group)}"
+                    setUpProgressDialog(it.getString(R.string.msg_updating_group))
+                    mView.button_add_group.text = it.getText(R.string.action_update_group)
+                    mGroup?.let { group ->
+                        mView.edit_title.setText(group.title.toString())
+                        mView.edit_description.setText(group.description.toString())
+                        mGroupId = group.id
+                        mPresenter.fetchMembers(group)
+                    }
+                }
+            }
         }
-        setUpProgressDialog()
-        setUpRecyclerView()
     }
 
     private fun setUpRecyclerView() {
@@ -164,6 +204,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
         }
         mView.button_add_group.setOnClickListener {
             val group = Group(
+                id = mGroupId,
                 type = true,
                 title = mView.edit_title.text.toString(),
                 description = mView.edit_description.text.toString()
@@ -173,22 +214,28 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
                     group.members[id] = true
                 }
             }
-            mPresenter.createGroup(group)
+            if (mScreenType == Constant.ScreenType.ADD) {
+                mPresenter.createGroup(group)
+            } else {
+                mPresenter.updateGroup(group)
+            }
         }
     }
 
-    private fun setUpProgressDialog() {
+    private fun setUpProgressDialog(message: String) {
         mProgressDialog = ProgressDialog(activity)
-        mProgressDialog.setMessage(getString(R.string.msg_creating_group))
+        mProgressDialog.setMessage(message)
     }
 
     companion object {
-        private const val ARGUMENT_TITLE = "title"
+        private const val ARGUMENT_SCREEN_TYPE = "screen_type"
+        private const val ARGUMENT_GROUP = "group"
         const val EXTRA_ARRAY = "members_id"
 
-        fun getInstance(title: String): CreateGroupFragment {
+        fun getInstance(screenType: String, group: Group?): CreateGroupFragment {
             val args = Bundle()
-            args.putString(ARGUMENT_TITLE, title)
+            args.putString(ARGUMENT_SCREEN_TYPE, screenType)
+            args.putParcelable(ARGUMENT_GROUP, group)
             val fragment = CreateGroupFragment()
             fragment.arguments = args
             return fragment

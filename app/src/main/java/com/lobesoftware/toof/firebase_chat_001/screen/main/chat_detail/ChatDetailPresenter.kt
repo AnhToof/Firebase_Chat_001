@@ -1,7 +1,7 @@
 package com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail
 
-import com.lobesoftware.toof.firebase_chat_001.data.model.Message
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
+import com.lobesoftware.toof.firebase_chat_001.data.model.Message
 import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.MessageRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
@@ -23,6 +23,20 @@ class ChatDetailPresenter(
     private val mGroupRepository = groupRepository
     private val mCompositeDisposable = CompositeDisposable()
 
+    override fun fetchGroupInformation(groupId: String) {
+        handleCheckCurrentUser { view, id ->
+            val disposable = mGroupRepository.fetchConversationsInformation(id, groupId, null)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    view.onFetchGroupInformationSuccess(it)
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
+        }
+    }
+
     override fun fetchUsersInGroup(group: Group) {
         handleCheckCurrentUser { view, id ->
             val disposable = mGroupRepository.fetchUsersInGroup(id, group)
@@ -31,7 +45,7 @@ class ChatDetailPresenter(
                 .subscribe({
                     view.onFetchUsersInGroupSuccess(it)
                 }, {
-                    view.onFetchFail()
+                    view.onFetchFail(it)
                 })
             mCompositeDisposable.add(disposable)
         }
@@ -41,7 +55,7 @@ class ChatDetailPresenter(
         handleCheckCurrentUser { view, id ->
             val groupId = group.id
             if (groupId == null) {
-                view.onFetchFail()
+                view.onFetchFail(NullPointerException())
             } else {
                 val disposable = mMessageRepository.fetchMessages(id, groupId)
                     .subscribeOn(Schedulers.io())
@@ -59,7 +73,7 @@ class ChatDetailPresenter(
                             }
                         }
                     }, {
-                        view.onFetchFail()
+                        view.onFetchFail(it)
                     })
                 mCompositeDisposable.add(disposable)
             }
@@ -70,7 +84,7 @@ class ChatDetailPresenter(
         handleCheckCurrentUser { view, id ->
             val groupId = group.id
             if (groupId == null) {
-                view.onFetchFail()
+                view.onFetchFail(NullPointerException())
             } else {
                 message.id = id
                 val disposable = mMessageRepository.sendMessage(id, groupId, message)
@@ -78,7 +92,31 @@ class ChatDetailPresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                     }, {
-                        view.onFetchFail()
+                        view.onFetchFail(it)
+                    })
+                mCompositeDisposable.add(disposable)
+            }
+        }
+    }
+
+    override fun leaveGroup(group: Group) {
+        handleCheckCurrentUser { view, id ->
+            view.showProgressDialog()
+            val groupId = group.id
+            if (groupId == null) {
+                view.onFetchFail(NullPointerException())
+                view.hideProgressDialog()
+            } else {
+                val disposable = mGroupRepository.leaveGroup(id, group)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doAfterTerminate {
+                        view.hideProgressDialog()
+                    }
+                    .subscribe({
+                        view.onLeaveGroupSuccess()
+                    }, {
+                        view.onFetchFail(it)
                     })
                 mCompositeDisposable.add(disposable)
             }

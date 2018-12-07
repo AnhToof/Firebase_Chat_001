@@ -45,8 +45,10 @@
     <string name="add">Thêm</string>
     <string name="edit">Chỉnh sửa</string>
     <string name="action_add_group">Tạo Nhóm</string>
+    <string name="action_update_group">Cập nhật nhóm</string>
     <string name="action_add_member">Thêm Thành Viên</string>
     <string name="msg_creating_group">Đang tạo nhóm…</string>
+    <string name="msg_updating_group">Đang cập nhật nhóm…</string>
     <string name="msg_session_expired">Phiên làm việc hết hạn. Vui lòng đăng nhập lại!</string>
     <string name="friend">Bạn bè</string>
     <string name="email_does_not_exist">Email không tồn tại</string>
@@ -57,4 +59,8 @@
     <string name="edit_group">Sửa nhóm chat</string>
     <string name="description">Mô tả</string>
     <string name="leave_group">Rời nhóm</string>
+    <string name="alert_leave_group">Bạn chắc là có muốn rời Group chứ?</string>
+    <string name="alert_ok">OK</string>
+    <string name="alert_cancel">Hủy</string>
+    <string name="msg_delete_group">Đang xóa nhóm…</string>
 </resources>
