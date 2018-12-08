@@ -31,7 +31,7 @@ class CreateGroupNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(acti
     override fun goToAddMemberScreen(fragment: CreateGroupFragment, members: ArrayList<User>) {
         activity.replaceFragment(
             R.id.frame_layout_container,
-            AddMemberFragment.getInstance(activity.getString(R.string.add), members),
+            AddMemberFragment.getInstance(members),
             true,
             currentFragment = fragment
         )

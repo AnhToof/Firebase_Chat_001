@@ -3,13 +3,13 @@ package com.lobesoftware.toof.firebase_chat_001.screen.main.profile
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
+import com.lobesoftware.toof.firebase_chat_001.extension.toast
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import kotlinx.android.synthetic.main.fragment_profile.view.*
@@ -36,21 +36,12 @@ class ProfileFragment : Fragment(), ProfileContract.View {
         savedInstanceState: Bundle?
     ): View? {
         mView = inflater.inflate(R.layout.fragment_profile, container, false)
-
-        mPresenter = ProfilePresenter()
-        mPresenter.apply {
-            setView(this@ProfileFragment)
-            setUserRepository(mUserRepository)
+        mPresenter = ProfilePresenter(this, mUserRepository)
+        (activity as? MainActivity)?.let {
+            mNavigator = ProfileNavigatorImpl(it)
         }
-
-        if (activity is MainActivity) {
-            mNavigator = ProfileNavigatorImpl(activity as AppCompatActivity)
-        }
-
         handleData()
-
         handleEvents()
-
         return mView
     }
 
@@ -62,6 +53,10 @@ class ProfileFragment : Fragment(), ProfileContract.View {
     override fun onDestroy() {
         mPresenter.onDestroy()
         super.onDestroy()
+    }
+
+    override fun onFetchFail(error: Throwable) {
+        (activity as? MainActivity)?.toast(error.localizedMessage)
     }
 
     override fun onFetchInformationSuccess(user: User) {

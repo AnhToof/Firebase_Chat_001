@@ -8,7 +8,9 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -62,18 +64,11 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_create_group, container, false)
         mPresenter = CreateGroupPresenter(this, mUserRepository, mGroupRepository, mValidator)
         initViews()
         handleEvents()
         return mView
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val item = menu.findItem(R.id.action_add)
-        item.isVisible = false
-        super.onPrepareOptionsMenu(menu)
     }
 
     override fun onStop() {
@@ -84,24 +79,6 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     override fun onDestroy() {
         mPresenter.onDestroy()
         super.onDestroy()
-    }
-
-    override fun onDetach() {
-        if (mScreenType == Constant.ScreenType.ADD) {
-            (activity as? MainActivity)?.let {
-                it.showBottomNavigation()
-                it.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-                it.supportActionBar?.title = it.getString(R.string.title_chat_screen)
-            }
-        }
-        super.onDetach()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            mNavigator.backToPreviousScreen()
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -128,9 +105,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     }
 
     override fun onCheckCurrentUserFail() {
-        (activity as? MainActivity)?.let {
-            it.toast(it.getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
-        }
+        (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
     }
 
@@ -159,25 +134,24 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
 
     private fun initViews() {
         (activity as? MainActivity)?.let {
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             mNavigator = CreateGroupNavigatorImpl(it)
-            setUpRecyclerView()
-            when (mScreenType) {
-                Constant.ScreenType.ADD -> {
-                    it.supportActionBar?.title = "${it.getString(R.string.add)} ${it.getString(R.string.group)}"
-                    setUpProgressDialog(it.getString(R.string.msg_creating_group))
-                    mView.button_add_group.text = it.getText(R.string.action_add_group)
-                }
-                else -> {
-                    it.supportActionBar?.title = "${it.getString(R.string.edit)} ${it.getString(R.string.group)}"
-                    setUpProgressDialog(it.getString(R.string.msg_updating_group))
-                    mView.button_add_group.text = it.getText(R.string.action_update_group)
-                    mGroup?.let { group ->
-                        mView.edit_title.setText(group.title.toString())
-                        mView.edit_description.setText(group.description.toString())
-                        mGroupId = group.id
-                        mPresenter.fetchMembers(group)
-                    }
+        }
+        setUpRecyclerView()
+        when (mScreenType) {
+            Constant.ScreenType.ADD -> {
+                mView.toolbar.title = "${getString(R.string.add)} ${getString(R.string.group)}"
+                setUpProgressDialog(getString(R.string.msg_creating_group))
+                mView.button_add_group.text = getText(R.string.action_add_group)
+            }
+            else -> {
+                mView.toolbar.title = "${getString(R.string.edit)} ${getString(R.string.group)}"
+                setUpProgressDialog(getString(R.string.msg_updating_group))
+                mView.button_add_group.text = getText(R.string.action_update_group)
+                mGroup?.let { group ->
+                    mView.edit_title.setText(group.title.toString())
+                    mView.edit_description.setText(group.description.toString())
+                    mGroupId = group.id
+                    mPresenter.fetchMembers(group)
                 }
             }
         }
@@ -219,6 +193,9 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
             } else {
                 mPresenter.updateGroup(group)
             }
+        }
+        mView.toolbar.setNavigationOnClickListener {
+            mNavigator.backToPreviousScreen()
         }
     }
 

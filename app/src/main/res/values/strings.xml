@@ -64,4 +64,5 @@
     <string name="msg_delete_group">Deleting group…</string>
     <string name="uploading">Uploading…</string>
     <string name="permission_denied">Permission Denied!</string>
+    <string name="select_photo">Select Photo</string>
 </resources>

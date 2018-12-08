@@ -8,10 +8,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class AddMemberPresenter : AddMemberContract.Presenter {
+class AddMemberPresenter(
+    view: AddMemberContract.View,
+    userRepository: UserRepository
+) : AddMemberContract.Presenter {
 
-    private var mView: AddMemberContract.View? = null
-    private lateinit var mUserRepository: UserRepository
+    private var mView: AddMemberContract.View? = view
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun fetchMembers() {
@@ -73,10 +76,6 @@ class AddMemberPresenter : AddMemberContract.Presenter {
 
     override fun onDestroy() {
         mView = null
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 
     private fun handleCheckCurrentUser(function: (view: AddMemberContract.View, id: String) -> Unit) {

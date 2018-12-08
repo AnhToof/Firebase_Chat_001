@@ -53,7 +53,7 @@ class ChatAdapter(private val context: Context) : RecyclerView.Adapter<ChatAdapt
 
     class ViewHolder(
         view: View,
-        conversations: ArrayList<Group>,
+        conversations: List<Group>,
         listener: ItemRecyclerViewClickListener<Group>?
     ) : RecyclerView.ViewHolder(view) {
 

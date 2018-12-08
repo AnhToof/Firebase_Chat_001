@@ -6,7 +6,6 @@ import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
 import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
-import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.description.DescriptionFragment
 import com.lobesoftware.toof.firebase_chat_001.utils.BaseNavigator
@@ -16,7 +15,7 @@ interface ChatDetailNavigator {
 
     fun goToAuthenticationScreen()
 
-    fun backToChatScreen()
+    fun backToPreviousScreen()
 
     fun goToDescriptionScreen(group: Group)
 
@@ -29,13 +28,8 @@ class ChatDetailNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activ
         activity.startActivity(AuthenticationActivity.getInstance(activity), removeItself = true)
     }
 
-    override fun backToChatScreen() {
+    override fun backToPreviousScreen() {
         activity.supportFragmentManager.popBackStack()
-        (activity as? MainActivity)?.let {
-            it.showBottomNavigation()
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            it.supportActionBar?.title = activity.getString(R.string.title_chat_screen)
-        }
     }
 
     override fun goToDescriptionScreen(group: Group) {

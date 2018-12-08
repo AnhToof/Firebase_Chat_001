@@ -43,7 +43,7 @@ class CreateGroupAdapter(private val context: Context) : RecyclerView.Adapter<Cr
 
     class ViewHolder(
         view: View,
-        members: ArrayList<User>,
+        members: List<User>,
         listener: ItemRecyclerViewClickListener<User>?
     ) : RecyclerView.ViewHolder(view) {
 

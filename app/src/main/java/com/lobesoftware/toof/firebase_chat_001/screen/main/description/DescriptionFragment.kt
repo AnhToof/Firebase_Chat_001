@@ -2,8 +2,9 @@ package com.lobesoftware.toof.firebase_chat_001.screen.main.description
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.*
-
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
@@ -19,23 +20,10 @@ class DescriptionFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_description, container, false)
         initViews()
+        handleEvents()
         return mView
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val item = menu.findItem(R.id.action_add)
-        item.isVisible = false
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            mNavigator.backToChatDetailScreen()
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun initViews() {
@@ -44,13 +32,18 @@ class DescriptionFragment : Fragment() {
                 mGroup = args.getParcelable(ARGUMENT_GROUP)
                 mNavigator = DescriptionNavigatorImpl(it)
             }
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
         mGroup?.let { group ->
             mView.text_description_content.text = group.description
             (activity as? MainActivity)?.let {
-                it.supportActionBar?.title = group.title
+                mView.toolbar.title = group.title
             }
+        }
+    }
+
+    private fun handleEvents() {
+        mView.toolbar.setNavigationOnClickListener {
+            mNavigator.backToChatDetailScreen()
         }
     }
 

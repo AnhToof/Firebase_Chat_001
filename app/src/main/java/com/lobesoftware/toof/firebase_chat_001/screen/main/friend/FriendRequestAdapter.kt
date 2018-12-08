@@ -66,7 +66,7 @@ class FriendRequestAdapter(private val context: Context) : RecyclerView.Adapter<
 
     class ViewHolder(
         view: View,
-        users: ArrayList<User>,
+        users: List<User>,
         listener: ItemRecyclerViewClickListener<User>?
     ) : RecyclerView.ViewHolder(view) {
         private val mImageAvatar: ImageView = view.image_avatar

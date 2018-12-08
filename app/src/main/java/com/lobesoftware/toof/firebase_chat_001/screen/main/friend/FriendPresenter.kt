@@ -8,89 +8,84 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class FriendPresenter : FriendContract.Presenter {
+class FriendPresenter(
+    view: FriendContract.View,
+    userRepository: UserRepository
+) : FriendContract.Presenter {
 
-    private var mView: FriendContract.View? = null
-    private lateinit var mUserRepository: UserRepository
+    private var mView: FriendContract.View? = view
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun fetchFriendRequest() {
-        handleCheckCurrentUser {
-            mView?.let { view ->
-                val disposable = mUserRepository.fetchRequestFriend(it)
-                    .flatMap { user ->
-                        mUserRepository.fetchUserById(user)
-                    }
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ user ->
-                        view.onFetchFriendRequestSuccess(user)
-                    }, {
-                        //No need
-                    })
-                mCompositeDisposable.add(disposable)
-            }
+        handleCheckCurrentUser { view, id ->
+            val disposable = mUserRepository.fetchRequestFriend(id)
+                .flatMap { user ->
+                    mUserRepository.fetchUserById(user)
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ user ->
+                    view.onFetchFriendRequestSuccess(user)
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
     override fun fetchFriend() {
-        handleCheckCurrentUser {
-            mView?.let { view ->
-                val disposable = mUserRepository.fetchFriend(it)
-                    .flatMap { user ->
-                        mUserRepository.fetchUserById(user)
-                    }
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ user ->
-                        when (user.action) {
-                            Constant.ACTION_ADD -> {
-                                view.onFriendAdded(user)
-                            }
-                            Constant.ACTION_REMOVE -> {
-                                view.onFriendRemoved(user)
-                            }
-                            Constant.ACTION_CHANGE -> {
-                                view.onFriendChanged(user)
-                            }
+        handleCheckCurrentUser { view, id ->
+            val disposable = mUserRepository.fetchFriend(id)
+                .flatMap { user ->
+                    mUserRepository.fetchUserById(user)
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ user ->
+                    when (user.action) {
+                        Constant.ACTION_ADD -> {
+                            view.onFriendAdded(user)
                         }
-                    }, {
-                        //No need
-                    })
-                mCompositeDisposable.add(disposable)
-            }
+                        Constant.ACTION_REMOVE -> {
+                            view.onFriendRemoved(user)
+                        }
+                        Constant.ACTION_CHANGE -> {
+                            view.onFriendChanged(user)
+                        }
+                    }
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
     override fun acceptFriend(user: User) {
-        handleCheckCurrentUser { id ->
-            mView?.let {
-                val disposable = mUserRepository.acceptFriend(id, user)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        //No need
-                    }, {
-                        //No need
-                    })
-                mCompositeDisposable.add(disposable)
-            }
+        handleCheckCurrentUser { view, id ->
+            val disposable = mUserRepository.acceptFriend(id, user)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    //No need
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
     override fun rejectFriend(user: User) {
-        handleCheckCurrentUser { id ->
-            mView?.let {
-                val disposable = mUserRepository.rejectFriend(id, user)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        //No need
-                    }, {
-                        //No need
-                    })
-                mCompositeDisposable.add(disposable)
-            }
+        handleCheckCurrentUser { view, id ->
+            val disposable = mUserRepository.rejectFriend(id, user)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    //No need
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
@@ -128,18 +123,14 @@ class FriendPresenter : FriendContract.Presenter {
         mView = null
     }
 
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
-    }
-
-    private fun handleCheckCurrentUser(f: (id: String) -> Unit) {
+    private fun handleCheckCurrentUser(function: (view: FriendContract.View, id: String) -> Unit) {
         mView?.let { view ->
             val disposable = mUserRepository.getCurrentUser()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ currentUser ->
                     currentUser.id?.let { currentId ->
-                        f(currentId)
+                        function(view, currentId)
                     }
                 }, {
                     view.onCheckCurrentUserFail()

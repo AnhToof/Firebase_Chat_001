@@ -10,6 +10,8 @@ interface ProfileContract {
         fun onFetchInformationSuccess(user: User)
 
         fun onSignOutSuccess()
+
+        fun onFetchFail(error: Throwable)
     }
 
     interface Presenter : BasePresenter<View> {

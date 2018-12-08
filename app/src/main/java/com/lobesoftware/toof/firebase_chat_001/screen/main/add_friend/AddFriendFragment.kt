@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -39,7 +41,6 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_add_friend, container, false)
         mPresenter = AddFriendPresenter(this, mUserRepository)
         initViews()
@@ -55,24 +56,6 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
     override fun onDestroy() {
         mPresenter.onDestroy()
         super.onDestroy()
-    }
-
-    override fun onDetach() {
-        mNavigator.backToFriendScreen()
-        super.onDetach()
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val item = menu.findItem(R.id.action_add)
-        item.isVisible = false
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            mNavigator.backToFriendScreen()
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onCheckCurrentUserFail() {
@@ -139,13 +122,10 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
 
     private fun initViews() {
         (activity as? MainActivity)?.let {
-            arguments?.let { args ->
-                it.supportActionBar?.title =
-                        "${args[ARGUMENT_TITLE]} ${activity?.getString(R.string.friend)}"
-            }
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             mNavigator = AddFriendNavigatorImpl(it)
         }
+        mView.toolbar.title =
+                "${getString(R.string.add)} ${activity?.getString(R.string.friend)}"
     }
 
     private fun handleEvents() {
@@ -161,17 +141,14 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
         mView.constraint_layout_friend_search.setOnClickListener {
             TODO("OPEN USER DETAIL")
         }
+        mView.toolbar.setNavigationOnClickListener {
+            mNavigator.backToFriendScreen()
+        }
     }
 
     companion object {
-        private const val ARGUMENT_TITLE = "title"
-
-        fun getInstance(title: String): AddFriendFragment {
-            val args = Bundle()
-            args.putString(ARGUMENT_TITLE, title)
-            val fragment = AddFriendFragment()
-            fragment.arguments = args
-            return fragment
+        fun getInstance(): AddFriendFragment {
+            return AddFriendFragment()
         }
     }
 }

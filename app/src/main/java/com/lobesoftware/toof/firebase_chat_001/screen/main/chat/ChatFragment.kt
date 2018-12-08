@@ -85,6 +85,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     }
 
     override fun onCheckCurrentUserFail() {
+        (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
     }
 
