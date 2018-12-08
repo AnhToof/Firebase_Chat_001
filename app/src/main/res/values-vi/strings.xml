@@ -63,4 +63,6 @@
     <string name="alert_ok">OK</string>
     <string name="alert_cancel">Hủy</string>
     <string name="msg_delete_group">Đang xóa nhóm…</string>
+    <string name="uploading">Đang tải…</string>
+    <string name="permission_denied">Quyền bị từ chối!</string>
 </resources>
