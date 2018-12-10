@@ -19,7 +19,7 @@ class AddMemberPresenter(
 
     override fun fetchMembers() {
         handleCheckCurrentUser { view, id ->
-            val disposable = mUserRepository.fetchMembers(id)
+            val disposable = mUserRepository.fetchFriend(id)
                 .flatMap {
                     mUserRepository.fetchUserById(it)
                 }

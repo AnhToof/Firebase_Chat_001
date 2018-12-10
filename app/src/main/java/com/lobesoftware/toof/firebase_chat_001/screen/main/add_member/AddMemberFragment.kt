@@ -103,7 +103,7 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
     }
 
     override fun onItemClick(view: View, item: User, position: Int) {
-        TODO("OPEN USER DETAIL")
+        mNavigator.goToUserDetailScreen(item)
     }
 
     private fun initViews() {

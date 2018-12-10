@@ -39,8 +39,8 @@ class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendA
         notifyItemInserted(position)
     }
 
-    fun removeFriend(user: User, position: Int) {
-        mUsers.remove(user)
+    fun removeFriend(position: Int) {
+        mUsers.removeAt(position)
         notifyItemRemoved(position)
     }
 

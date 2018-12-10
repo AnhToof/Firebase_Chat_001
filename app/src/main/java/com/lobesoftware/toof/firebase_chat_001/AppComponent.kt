@@ -12,6 +12,7 @@ import com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail.ChatDetai
 import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.friend.FriendFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.profile.ProfileFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.user_detail.UserDetailFragment
 import dagger.Component
 import javax.inject.Singleton
 
@@ -40,4 +41,6 @@ interface AppComponent {
     fun inject(addFriendFragment: AddFriendFragment)
 
     fun inject(chatDetailFragment: ChatDetailFragment)
+
+    fun inject(UserDetailFragment: UserDetailFragment)
 }

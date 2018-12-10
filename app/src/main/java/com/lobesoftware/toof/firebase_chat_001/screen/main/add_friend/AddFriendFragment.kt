@@ -139,7 +139,9 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
             }
         }
         mView.constraint_layout_friend_search.setOnClickListener {
-            TODO("OPEN USER DETAIL")
+            mUser?.let { user ->
+                mNavigator.goToUserDetailScreen(user)
+            }
         }
         mView.toolbar.setNavigationOnClickListener {
             mNavigator.backToFriendScreen()

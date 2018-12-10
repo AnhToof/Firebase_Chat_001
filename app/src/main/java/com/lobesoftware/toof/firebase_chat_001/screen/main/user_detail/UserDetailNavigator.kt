@@ -1,37 +1,37 @@
-package com.lobesoftware.toof.firebase_chat_001.screen.main.add_friend
+package com.lobesoftware.toof.firebase_chat_001.screen.main.user_detail
 
 import android.support.v7.app.AppCompatActivity
 import com.lobesoftware.toof.firebase_chat_001.R
-import com.lobesoftware.toof.firebase_chat_001.data.model.User
+import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
 import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
-import com.lobesoftware.toof.firebase_chat_001.screen.main.user_detail.UserDetailFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail.ChatDetailFragment
 import com.lobesoftware.toof.firebase_chat_001.utils.BaseNavigator
 
-interface AddFriendNavigator {
+interface UserDetailNavigator {
 
     fun goToAuthenticationScreen()
 
-    fun backToFriendScreen()
+    fun backToPreviousScreen()
 
-    fun goToUserDetailScreen(user: User)
+    fun goToConversationDetail(group: Group)
 }
 
-class AddFriendNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), AddFriendNavigator {
+class UserDetailNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), UserDetailNavigator {
 
     override fun goToAuthenticationScreen() {
         activity.startActivity(AuthenticationActivity.getInstance(activity), removeItself = true)
     }
 
-    override fun backToFriendScreen() {
+    override fun backToPreviousScreen() {
         activity.supportFragmentManager.popBackStack()
     }
 
-    override fun goToUserDetailScreen(user: User) {
+    override fun goToConversationDetail(group: Group) {
         activity.replaceFragment(
             R.id.frame_layout_container,
-            UserDetailFragment.getInstance(user),
+            ChatDetailFragment.getInstance(group.title ?: "", group),
             true
         )
     }

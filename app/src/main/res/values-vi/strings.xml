@@ -66,4 +66,9 @@
     <string name="uploading">Đang tải…</string>
     <string name="permission_denied">Quyền bị từ chối!</string>
     <string name="select_photo">Chọn ảnh</string>
+    <string name="add_friend">Thêm bạn bè</string>
+    <string name="unfriend">Hủy kết bạn</string>
+    <string name="conversation">Hội thoại</string>
+    <string name="button_sent_request">Đã gửi yêu cầu</string>
+    <string name="button_accept_friend">Chấp nhận bạn bè</string>
 </resources>

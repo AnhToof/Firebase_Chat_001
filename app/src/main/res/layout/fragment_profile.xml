@@ -87,7 +87,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="@dimen/dp_20"
-            android:background="@drawable/custom_button_logout"
+            android:background="@drawable/custom_button_negative"
             android:textColor="@color/colorLogout"
             android:layout_marginEnd="@dimen/dp_20"
             android:layout_marginBottom="@dimen/dp_10"/>

@@ -27,8 +27,6 @@ interface UserRepository {
 
     fun rejectFriend(currentId: String, user: User): Completable
 
-    fun fetchMembers(currentId: String): Observable<User>
-
     fun fetchUserById(user: User): Observable<User>
 
     fun searchUserByEmail(currentId: String, email: String): Single<User?>
@@ -38,6 +36,8 @@ interface UserRepository {
     fun checkFriend(currentId: String, user: User): Single<User>
 
     fun checkRequestedFriend(currentId: String, user: User): Single<User>
+
+    fun unFriend(currentId: String, friendId: String, groupId: String): Single<String>
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -230,74 +230,49 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override fun fetchMembers(currentId: String): Observable<User> {
-        return Observable.create { emitter ->
-            mDatabase.child(Constant.KeyDatabase.User.USER)
-                .addChildEventListener(object : ChildEventListener {
-                    override fun onCancelled(dataSnapshot: DatabaseError) {
-                        emitter.onError(dataSnapshot.toException())
-                    }
-
-                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                    }
-
-                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                    }
-
-                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                        if (dataSnapshot.key != currentId) {
-                            dataSnapshot.getValue(User::class.java)?.let { user ->
-                                user.action = Constant.ACTION_ADD
-                                emitter.onNext(user)
-                            }
-                        }
-                    }
-
-                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                        if (dataSnapshot.key != currentId) {
-                            dataSnapshot.getValue(User::class.java)?.let { user ->
-                                user.action = Constant.ACTION_ADD
-                                emitter.onNext(user)
-                            }
-
-                        }
-                    }
-                })
-        }
-    }
-
     override fun fetchUserById(user: User): Observable<User> {
         return Observable.create { emitter ->
-            mDatabase.child(Constant.KeyDatabase.User.USER)
-                .addChildEventListener(object : ChildEventListener {
-                    override fun onCancelled(dataSnapshot: DatabaseError) {
-                        emitter.onError(dataSnapshot.toException())
-                    }
+            if (user.action == Constant.ACTION_REMOVE) {
+                emitter.onNext(user)
+            } else {
+                mDatabase.child(Constant.KeyDatabase.User.USER)
+                    .addChildEventListener(object : ChildEventListener {
+                        override fun onCancelled(dataSnapshot: DatabaseError) {
+                            emitter.onError(dataSnapshot.toException())
+                        }
 
-                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                    }
+                        override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                        }
 
-                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                        dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
-                            if (fetchUser.id == user.id) {
-                                fetchUser.action = Constant.ACTION_CHANGE
-                                emitter.onNext(fetchUser)
+                        override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                            dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
+                                if (fetchUser.id == user.id) {
+                                    fetchUser.action = Constant.ACTION_CHANGE
+                                    emitter.onNext(fetchUser)
+                                    user.action = null
+                                }
                             }
                         }
-                    }
 
-                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                        dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
-                            if (fetchUser.id == user.id) {
-                                fetchUser.action = Constant.ACTION_ADD
-                                emitter.onNext(fetchUser)
+                        override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                            dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
+                                if (fetchUser.id == user.id) {
+                                    fetchUser.action = Constant.ACTION_ADD
+                                    emitter.onNext(fetchUser)
+                                }
                             }
                         }
-                    }
 
-                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                    }
-                })
+                        override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                            dataSnapshot.getValue(User::class.java)?.let { fetchUser ->
+                                if (fetchUser.id == user.id) {
+                                    fetchUser.action = Constant.ACTION_REMOVE
+                                    emitter.onNext(fetchUser)
+                                }
+                            }
+                        }
+                    })
+            }
         }
     }
 
@@ -398,6 +373,32 @@ class UserRepositoryImpl : UserRepository {
                         })
                 }
             }
+        }
+    }
+
+    override fun unFriend(currentId: String, friendId: String, groupId: String): Single<String> {
+        return Single.create { emitter ->
+            val childUpdates = HashMap<String, Any?>()
+            childUpdates["/${Constant.KeyDatabase.User.USER}/$friendId/${Constant.KeyDatabase.User.GROUP}/$groupId"] =
+                    null
+            childUpdates["/${Constant.KeyDatabase.User.USER}/$currentId/${Constant.KeyDatabase.User.GROUP}/$groupId"] =
+                    null
+            childUpdates["/${Constant.KeyDatabase.Group.GROUP}/$groupId"] = null
+            childUpdates["/${Constant.KeyDatabase.Message.MESSAGES}/$groupId"] = null
+            childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$currentId/$friendId"] = null
+            childUpdates["/${Constant.KeyDatabase.Friend.FRIENDSHIP}/$friendId/$currentId"] = null
+            mDatabase.updateChildren(childUpdates)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        emitter.onSuccess("")
+                        return@addOnCompleteListener
+                    }
+                    it.exception?.let { exception ->
+                        emitter.onError(exception)
+                        return@addOnCompleteListener
+                    }
+                    emitter.onError(NullPointerException())
+                }
         }
     }
 

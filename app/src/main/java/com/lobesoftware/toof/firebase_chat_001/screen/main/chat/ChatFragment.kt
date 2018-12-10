@@ -111,7 +111,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     override fun onConversationRemoved(group: Group) {
         for ((index, oldGroup) in mConversations.withIndex()) {
             if (oldGroup.id == group.id) {
-                mConversations.remove(oldGroup)
+                mConversations.removeAt(index)
                 mAdapter.removeConversation(index)
                 break
             }
