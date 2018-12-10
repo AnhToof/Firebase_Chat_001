@@ -43,7 +43,7 @@ class ChatDetailAdapter(private val context: Context) : RecyclerView.Adapter<Cha
 
     class ViewHolder(
         view: View,
-        users: ArrayList<User>
+        users: List<User>
     ) : RecyclerView.ViewHolder(view) {
         private val mImageAvatar = view.image_avatar
         private val mTextFullName = view.text_full_name

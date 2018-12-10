@@ -18,6 +18,8 @@ interface FriendContract {
         fun onCheckCurrentUserFail()
 
         fun onFilterFriendSuccess(users: List<User>)
+
+        fun onFetchFail(error: Throwable)
     }
 
     interface Presenter : BasePresenter<View> {

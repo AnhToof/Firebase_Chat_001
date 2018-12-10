@@ -9,7 +9,9 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -44,14 +46,9 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_add_member, container, false)
+        mPresenter = AddMemberPresenter(this, mUserRepository)
         initViews()
-        mPresenter = AddMemberPresenter()
-        mPresenter.apply {
-            setView(this@AddMemberFragment)
-            setUserRepository(mUserRepository)
-        }
         setUpData()
         handleEvents()
         return mView
@@ -67,23 +64,8 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
         super.onDestroy()
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val item = menu.findItem(R.id.action_add)
-        item.isVisible = false
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            mNavigator.backToAddGroupScreen()
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     override fun onCheckCurrentUserFail() {
-        (activity as? MainActivity)?.let {
-            it.toast(it.getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
-        }
+        (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
     }
 
@@ -127,13 +109,10 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
     private fun initViews() {
         setUpConversationRecyclerView()
         (activity as? MainActivity)?.let {
-            arguments?.let { args ->
-                it.supportActionBar?.title =
-                        "${args[AddMemberFragment.ARGUMENT_TITLE]} ${activity?.getString(R.string.member)}"
-            }
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             mNavigator = AddMemberNavigatorImpl(activity as AppCompatActivity)
         }
+        mView.toolbar.title =
+                "${getString(R.string.add)} ${activity?.getString(R.string.member)}"
     }
 
     private fun setUpConversationRecyclerView() {
@@ -177,15 +156,16 @@ class AddMemberFragment : Fragment(), AddMemberContract.View, ItemRecyclerViewCl
                 mPresenter.filterMembers(s.toString(), mMembers)
             }
         })
+        mView.toolbar.setNavigationOnClickListener {
+            mNavigator.backToAddGroupScreen()
+        }
     }
 
     companion object {
-        private const val ARGUMENT_TITLE = "title"
         private const val ARGUMENT_MEMBERS = "members"
 
-        fun getInstance(title: String, members: ArrayList<User>): AddMemberFragment {
+        fun getInstance(members: ArrayList<User>): AddMemberFragment {
             val args = Bundle()
-            args.putString(ARGUMENT_TITLE, title)
             args.putParcelableArrayList(ARGUMENT_MEMBERS, members)
             val fragment = AddMemberFragment()
             fragment.arguments = args

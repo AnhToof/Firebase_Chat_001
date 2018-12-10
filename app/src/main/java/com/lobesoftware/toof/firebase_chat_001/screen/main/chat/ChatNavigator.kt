@@ -6,7 +6,6 @@ import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
 import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
-import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail.ChatDetailFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.create_group.CreateGroupFragment
 import com.lobesoftware.toof.firebase_chat_001.utils.BaseNavigator
@@ -28,7 +27,6 @@ class ChatNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), 
     }
 
     override fun goToCreateGroupScreen() {
-        (activity as? MainActivity)?.hideBottomNavigation()
         activity.replaceFragment(
             R.id.frame_layout_container,
             CreateGroupFragment.getInstance(Constant.ScreenType.ADD, null),
@@ -37,7 +35,6 @@ class ChatNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), 
     }
 
     override fun goToConversationDetail(group: Group) {
-        (activity as? MainActivity)?.hideBottomNavigation()
         activity.replaceFragment(
             R.id.frame_layout_container,
             ChatDetailFragment.getInstance(group.title ?: "", group),

@@ -65,4 +65,5 @@
     <string name="msg_delete_group">Đang xóa nhóm…</string>
     <string name="uploading">Đang tải…</string>
     <string name="permission_denied">Quyền bị từ chối!</string>
+    <string name="select_photo">Chọn ảnh</string>
 </resources>

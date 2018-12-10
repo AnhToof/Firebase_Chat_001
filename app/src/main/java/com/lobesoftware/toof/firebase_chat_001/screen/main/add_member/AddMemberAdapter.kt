@@ -62,7 +62,7 @@ class AddMemberAdapter(private val context: Context) : RecyclerView.Adapter<AddM
 
     class ViewHolder(
         view: View,
-        users: ArrayList<User>,
+        users: List<User>,
         usersSelected: ArrayList<User>,
         listener: ItemRecyclerViewClickListener<User>?
     ) : RecyclerView.ViewHolder(view) {

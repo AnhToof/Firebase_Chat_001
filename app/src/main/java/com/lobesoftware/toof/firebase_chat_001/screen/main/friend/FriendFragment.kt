@@ -3,16 +3,17 @@ package com.lobesoftware.toof.firebase_chat_001.screen.main.friend
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
+import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
+import com.lobesoftware.toof.firebase_chat_001.extension.toast
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
@@ -44,21 +45,12 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         savedInstanceState: Bundle?
     ): View? {
         mView = inflater.inflate(R.layout.fragment_friend, container, false)
-
         setHasOptionsMenu(true)
-
         initViews()
-
-        mPresenter = FriendPresenter()
-        mPresenter.apply {
-            setView(this@FriendFragment)
-            setUserRepository(mUserRepository)
+        mPresenter = FriendPresenter(this, mUserRepository)
+        (activity as? MainActivity)?.let {
+            mNavigator = FriendNavigatorImpl(it)
         }
-
-        if (activity is MainActivity) {
-            mNavigator = FriendNavigatorImpl(activity as AppCompatActivity)
-        }
-
         setUpData()
         handleEvents()
         return mView
@@ -100,6 +92,10 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         super.onDestroy()
     }
 
+    override fun onFetchFail(error: Throwable) {
+        (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
+    }
+
     override fun onFetchFriendRequestSuccess(user: User) {
         mFriendRequestAdapter.updateData(user)
     }
@@ -130,6 +126,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     }
 
     override fun onCheckCurrentUserFail() {
+        (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
     }
 

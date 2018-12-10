@@ -10,12 +10,21 @@
         android:clickable="true"
         tools:context=".screen.main.add_member.AddMemberFragment">
 
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"
+            app:titleTextColor="@android:color/white"
+            android:background="?attr/colorPrimary"
+            app:navigationIcon="?homeAsUpIndicator"/>
+
     <include
             android:id="@+id/custom_search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             layout="@layout/custom_search_box"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_margin="@dimen/dp_5"/>

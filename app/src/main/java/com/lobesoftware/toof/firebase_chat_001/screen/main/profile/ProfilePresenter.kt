@@ -5,10 +5,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class ProfilePresenter : ProfileContract.Presenter {
+class ProfilePresenter(
+    view: ProfileContract.View,
+    userRepository: UserRepository
+) : ProfileContract.Presenter {
 
-    private var mView: ProfileContract.View? = null
-    private lateinit var mUserRepository: UserRepository
+    private var mView: ProfileContract.View? = view
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun setView(view: ProfileContract.View) {
@@ -34,7 +37,7 @@ class ProfilePresenter : ProfileContract.Presenter {
                 .subscribe({
                     view.onFetchInformationSuccess(it)
                 }, {
-                    //No need to show to user then no need return an error
+                    view.onFetchFail(it)
                 })
             mCompositeDisposable.add(disposable)
         }
@@ -45,9 +48,5 @@ class ProfilePresenter : ProfileContract.Presenter {
             mUserRepository.signOut()
             it.onSignOutSuccess()
         }
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 }

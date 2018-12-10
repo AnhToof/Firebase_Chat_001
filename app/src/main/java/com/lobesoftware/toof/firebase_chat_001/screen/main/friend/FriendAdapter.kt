@@ -17,7 +17,6 @@ class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendA
 
     private var mUsers = ArrayList<User>()
     private var mListener: ItemRecyclerViewClickListener<User>? = null
-    private var mIsSearch: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_user, parent, false)
@@ -56,7 +55,7 @@ class FriendAdapter(private val context: Context) : RecyclerView.Adapter<FriendA
 
     class ViewHolder(
         view: View,
-        users: ArrayList<User>,
+        users: List<User>,
         listener: ItemRecyclerViewClickListener<User>?
     ) : RecyclerView.ViewHolder(view) {
         private val mImageAvatar: ImageView = view.image_avatar

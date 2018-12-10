@@ -15,7 +15,11 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
-import android.view.*
+import android.support.v7.widget.Toolbar
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -32,7 +36,7 @@ import kotlinx.android.synthetic.main.fragment_chat_detail.*
 import kotlinx.android.synthetic.main.fragment_chat_detail.view.*
 import javax.inject.Inject
 
-class ChatDetailFragment : Fragment(), ChatDetailContract.View {
+class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuItemClickListener {
 
     @Inject
     internal lateinit var mUserRepository: UserRepository
@@ -65,7 +69,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         mView = inflater.inflate(R.layout.fragment_chat_detail, container, false)
         mPresenter = ChatDetailPresenter(this, mUserRepository, mGroupRepository, mMessageRepository)
         initViews()
@@ -74,19 +77,26 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         return mView
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val item = menu.findItem(R.id.action_add)
-        item.isVisible = false
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        mGroup?.let {
-            if (it.type == GroupType.GROUP.value) {
-                inflater.inflate(R.menu.menu_option_chat_detail, menu)
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_description -> {
+                mGroup?.let {
+                    mNavigator.goToDescriptionScreen(it)
+                }
+                return true
+            }
+            R.id.action_edit_group -> {
+                mGroup?.let {
+                    mNavigator.goToEditGroupScreen(it)
+                }
+                return true
+            }
+            R.id.action_leave_group -> {
+                showDialogConfirmLeaveGroup()
+                return true
             }
         }
-        super.onCreateOptionsMenu(menu, inflater)
+        return false
     }
 
     override fun onStart() {
@@ -106,41 +116,8 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         super.onDestroy()
     }
 
-    override fun onDetach() {
-        (activity as? MainActivity)?.let {
-            it.showBottomNavigation()
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            it.supportActionBar?.title = getString(R.string.title_chat_screen)
-        }
-        super.onDetach()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {
-                mNavigator.backToChatScreen()
-            }
-            R.id.action_description -> {
-                mGroup?.let {
-                    mNavigator.goToDescriptionScreen(it)
-                }
-            }
-            R.id.action_edit_group -> {
-                mGroup?.let {
-                    mNavigator.goToEditGroupScreen(it)
-                }
-            }
-            R.id.action_leave_group -> {
-                showDialogConfirmLeaveGroup()
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     override fun onCheckCurrentUserFail() {
-        (activity as? MainActivity)?.let {
-            it.toast(it.getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
-        }
+        (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
     }
 
@@ -161,7 +138,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
     }
 
     override fun onLeaveGroupSuccess() {
-        mNavigator.backToChatScreen()
+        mNavigator.backToPreviousScreen()
     }
 
     override fun onUploadFail(error: Throwable) {
@@ -198,10 +175,11 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isEmpty() || grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.isEmpty() || grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     (activity as? MainActivity)?.toast(getString(R.string.permission_denied))
-                else
+                } else {
                     selectImageFile()
+                }
             }
         }
     }
@@ -220,11 +198,15 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
         (activity as? MainActivity)?.let {
             arguments?.let { args ->
                 mGroup = args.getParcelable(ARGUMENT_GROUP)
-                it.supportActionBar?.title =
+                mView.toolbar.title =
                         "${args[ARGUMENT_TITLE]}"
             }
             mNavigator = ChatDetailNavigatorImpl(it)
-            it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
+        mGroup?.let {
+            if (it.type == GroupType.GROUP.value) {
+                mView.toolbar.inflateMenu(R.menu.menu_option_chat_detail)
+            }
         }
         setUpRecyclerView()
     }
@@ -287,6 +269,10 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
                 }
             }
         }
+        mView.toolbar.setNavigationOnClickListener {
+            mNavigator.backToPreviousScreen()
+        }
+        mView.toolbar.setOnMenuItemClickListener(this)
     }
 
     private fun selectImageFile() {
@@ -294,7 +280,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View {
             action = Intent.ACTION_GET_CONTENT
             type = "image/*"
         }
-        startActivityForResult(Intent.createChooser(intent, "Select Photo"), PICK_IMAGE_REQUEST)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.select_photo)), PICK_IMAGE_REQUEST)
     }
 
     private fun showDialogConfirmLeaveGroup() {
