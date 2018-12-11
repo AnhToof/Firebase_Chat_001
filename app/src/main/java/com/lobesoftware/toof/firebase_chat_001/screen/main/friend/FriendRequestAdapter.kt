@@ -42,7 +42,7 @@ class FriendRequestAdapter(private val context: Context) : RecyclerView.Adapter<
             Constant.ACTION_REMOVE -> {
                 for ((index, oldUser) in mUsers.withIndex()) {
                     if (oldUser.id == user.id) {
-                        mUsers.remove(oldUser)
+                        mUsers.removeAt(index)
                         notifyItemRemoved(index)
                         break
                     }

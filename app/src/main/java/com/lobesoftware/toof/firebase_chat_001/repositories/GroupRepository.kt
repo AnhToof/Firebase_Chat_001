@@ -23,6 +23,8 @@ interface GroupRepository {
     fun fetchUsersInGroup(currentId: String, group: Group): Single<List<User>>
 
     fun leaveGroup(currentId: String, group: Group): Completable
+
+    fun fetchGroupWithFriendInformation(currentId: String, friendId: String): Single<Group>
 }
 
 class GroupRepositoryImpl : GroupRepository {
@@ -69,42 +71,46 @@ class GroupRepositoryImpl : GroupRepository {
         action: String?
     ): Observable<Group> {
         return Observable.create { emitter ->
-            mDatabase.child(Constant.KeyDatabase.Group.GROUP)
-                .addChildEventListener(object : ChildEventListener {
-                    override fun onCancelled(dataSnapshot: DatabaseError) {
-                        emitter.onError(dataSnapshot.toException())
-                    }
+            if (action == Constant.ACTION_REMOVE) {
+                emitter.onNext(Group(id = groupId, action = action))
+            } else {
+                mDatabase.child(Constant.KeyDatabase.Group.GROUP)
+                    .addChildEventListener(object : ChildEventListener {
+                        override fun onCancelled(dataSnapshot: DatabaseError) {
+                            emitter.onError(dataSnapshot.toException())
+                        }
 
-                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                    }
+                        override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                        }
 
-                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                        if (dataSnapshot.key == groupId) {
-                            dataSnapshot.getValue(Group::class.java)?.let { changedGroup ->
-                                changedGroup.action = Constant.ACTION_CHANGE
-                                emitter.onNext(changedGroup)
+                        override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                            if (dataSnapshot.key == groupId) {
+                                dataSnapshot.getValue(Group::class.java)?.let { changedGroup ->
+                                    changedGroup.action = Constant.ACTION_CHANGE
+                                    emitter.onNext(changedGroup)
+                                }
                             }
                         }
-                    }
 
-                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                        if (dataSnapshot.key == groupId) {
-                            dataSnapshot.getValue(Group::class.java)?.let { addedGroup ->
-                                addedGroup.action = action
-                                emitter.onNext(addedGroup)
+                        override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                            if (dataSnapshot.key == groupId) {
+                                dataSnapshot.getValue(Group::class.java)?.let { addedGroup ->
+                                    addedGroup.action = action
+                                    emitter.onNext(addedGroup)
+                                }
                             }
                         }
-                    }
 
-                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                        if (dataSnapshot.key == groupId) {
-                            dataSnapshot.getValue(Group::class.java)?.let { removedGroup ->
-                                removedGroup.action = Constant.ACTION_REMOVE
-                                emitter.onNext(removedGroup)
+                        override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                            if (dataSnapshot.key == groupId) {
+                                dataSnapshot.getValue(Group::class.java)?.let { removedGroup ->
+                                    removedGroup.action = Constant.ACTION_REMOVE
+                                    emitter.onNext(removedGroup)
+                                }
                             }
                         }
-                    }
-                })
+                    })
+            }
         }
     }
 
@@ -159,54 +165,58 @@ class GroupRepositoryImpl : GroupRepository {
             if (group.type == GroupType.GROUP.value) {
                 emitter.onNext(group)
             } else {
-                mDatabase.child(Constant.KeyDatabase.User.USER)
-                    .addChildEventListener(object : ChildEventListener {
-                        override fun onCancelled(dataSnapshot: DatabaseError) {
-                            emitter.onError(dataSnapshot.toException())
-                        }
-
-                        override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
-                        }
-
-                        override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
-                            val userId = group.members.keys.first {
-                                it != currentId
+                if (group.action == Constant.ACTION_REMOVE) {
+                    emitter.onNext(group)
+                } else {
+                    mDatabase.child(Constant.KeyDatabase.User.USER)
+                        .addChildEventListener(object : ChildEventListener {
+                            override fun onCancelled(dataSnapshot: DatabaseError) {
+                                emitter.onError(dataSnapshot.toException())
                             }
-                            if (dataSnapshot.key == userId) {
-                                dataSnapshot.getValue(User::class.java)?.let { changedUser ->
-                                    group.title = changedUser.fullName
-                                    group.action = Constant.ACTION_CHANGE
-                                    emitter.onNext(group)
+
+                            override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                            }
+
+                            override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                                val userId = group.members.keys.first {
+                                    it != currentId
+                                }
+                                if (dataSnapshot.key == userId) {
+                                    dataSnapshot.getValue(User::class.java)?.let { changedUser ->
+                                        group.title = changedUser.fullName
+                                        group.action = Constant.ACTION_CHANGE
+                                        emitter.onNext(group)
+                                    }
                                 }
                             }
-                        }
 
-                        override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                            val userId = group.members.keys.first {
-                                it != currentId
-                            }
-                            if (dataSnapshot.key == userId) {
-                                dataSnapshot.getValue(User::class.java)?.let { addedUser ->
-                                    group.title = addedUser.fullName
-                                    group.action = Constant.ACTION_ADD
-                                    emitter.onNext(group)
+                            override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                                val userId = group.members.keys.first {
+                                    it != currentId
+                                }
+                                if (dataSnapshot.key == userId) {
+                                    dataSnapshot.getValue(User::class.java)?.let { addedUser ->
+                                        group.title = addedUser.fullName
+                                        group.action = Constant.ACTION_ADD
+                                        emitter.onNext(group)
+                                    }
                                 }
                             }
-                        }
 
-                        override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                            val userId = group.members.keys.first {
-                                it != currentId
-                            }
-                            if (dataSnapshot.key == userId) {
-                                dataSnapshot.getValue(User::class.java)?.let { removedUser ->
-                                    group.title = removedUser.fullName
-                                    group.action = Constant.ACTION_REMOVE
-                                    emitter.onNext(group)
+                            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                                val userId = group.members.keys.first {
+                                    it != currentId
+                                }
+                                if (dataSnapshot.key == userId) {
+                                    dataSnapshot.getValue(User::class.java)?.let { removedUser ->
+                                        group.title = removedUser.fullName
+                                        group.action = Constant.ACTION_REMOVE
+                                        emitter.onNext(group)
+                                    }
                                 }
                             }
-                        }
-                    })
+                        })
+                }
             }
         }
     }
@@ -259,6 +269,36 @@ class GroupRepositoryImpl : GroupRepository {
                     }
                     emitter.onError(NullPointerException())
                 }
+        }
+    }
+
+    override fun fetchGroupWithFriendInformation(currentId: String, friendId: String): Single<Group> {
+        return Single.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Group.GROUP)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, p1: String?) {
+                    }
+
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                        dataSnapshot.getValue(Group::class.java)?.let { group ->
+                            if (group.type == GroupType.PRIVATE.value) {
+                                if (group.members.keys.containsAll(listOf(currentId, friendId))) {
+                                    emitter.onSuccess(group)
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    }
+                })
         }
     }
 }

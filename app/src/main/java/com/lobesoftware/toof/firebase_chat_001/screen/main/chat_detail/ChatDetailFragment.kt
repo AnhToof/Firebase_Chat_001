@@ -289,6 +289,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
             .setCancelable(true)
             .setPositiveButton(getString(R.string.alert_ok)) { _, _ ->
                 mGroup?.let {
+                    setUpProgressDialog(getString(R.string.msg_delete_group))
                     mPresenter.leaveGroup(it)
                 }
             }

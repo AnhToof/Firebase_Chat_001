@@ -65,7 +65,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
                 mPresenter.rejectFriend(item)
             }
             else -> {
-                TODO("Open user detail")
+                mNavigator.goToUserDetailScreen(item)
             }
         }
     }
@@ -118,8 +118,8 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     override fun onFriendRemoved(user: User) {
         for ((index, oldUser) in mFriends.withIndex()) {
             if (oldUser.id == user.id) {
-                mFriends.remove(oldUser)
-                mFriendAdapter.removeFriend(user, index)
+                mFriends.removeAt(index)
+                mFriendAdapter.removeFriend(index)
                 break
             }
         }

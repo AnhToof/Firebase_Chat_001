@@ -101,7 +101,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     }
 
     override fun onItemClick(view: View, item: User, position: Int) {
-        TODO("OPEN USER DETAIL")
+        mNavigator.goToUserDetailScreen(item)
     }
 
     override fun onCheckCurrentUserFail() {

@@ -7,6 +7,7 @@ import com.lobesoftware.toof.firebase_chat_001.extension.replaceFragment
 import com.lobesoftware.toof.firebase_chat_001.extension.startActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.authentication.AuthenticationActivity
 import com.lobesoftware.toof.firebase_chat_001.screen.main.add_member.AddMemberFragment
+import com.lobesoftware.toof.firebase_chat_001.screen.main.user_detail.UserDetailFragment
 import com.lobesoftware.toof.firebase_chat_001.utils.BaseNavigator
 
 interface CreateGroupNavigator {
@@ -16,6 +17,8 @@ interface CreateGroupNavigator {
     fun backToPreviousScreen()
 
     fun goToAddMemberScreen(fragment: CreateGroupFragment, members: ArrayList<User>)
+
+    fun goToUserDetailScreen(user: User)
 }
 
 class CreateGroupNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(activity), CreateGroupNavigator {
@@ -34,6 +37,14 @@ class CreateGroupNavigatorImpl(activity: AppCompatActivity) : BaseNavigator(acti
             AddMemberFragment.getInstance(members),
             true,
             currentFragment = fragment
+        )
+    }
+
+    override fun goToUserDetailScreen(user: User) {
+        activity.replaceFragment(
+            R.id.frame_layout_container,
+            UserDetailFragment.getInstance(user),
+            true
         )
     }
 }
