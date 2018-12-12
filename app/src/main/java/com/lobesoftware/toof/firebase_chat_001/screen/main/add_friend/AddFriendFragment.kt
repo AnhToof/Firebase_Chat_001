@@ -77,7 +77,7 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
     }
 
     override fun onSearchUserFail(error: Throwable) {
-        if (error == NullPointerException()) {
+        if (error is NullPointerException) {
             (activity as? MainActivity)?.toast(getString(R.string.email_does_not_exist), Toast.LENGTH_LONG)
         } else {
             (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
@@ -131,7 +131,9 @@ class AddFriendFragment : Fragment(), AddFriendContact.View {
     private fun handleEvents() {
         mView.image_search.setOnClickListener {
             mView.constraint_layout_friend_search.visibility = View.GONE
-            mPresenter.searchUserByEmail(mView.edit_search.text.toString().toLowerCase())
+            if (mView.edit_search.text.trim().toString().toLowerCase().isNotEmpty()) {
+                mPresenter.searchUserByEmail(mView.edit_search.text.toString().toLowerCase())
+            }
         }
         mView.button_add_friend.setOnClickListener {
             mUser?.id?.let { friendId ->

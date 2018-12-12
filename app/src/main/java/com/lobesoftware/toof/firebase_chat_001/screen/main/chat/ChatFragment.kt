@@ -33,6 +33,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     private lateinit var mView: View
     private lateinit var mNavigator: ChatNavigator
     private val mConversations = ArrayList<Group>()
+    private var mIsVisibleFirstTime: Boolean = true
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -53,9 +54,18 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
         (activity as? MainActivity)?.let {
             mNavigator = ChatNavigatorImpl(it)
         }
-        setUpData()
+        if (userVisibleHint) {
+            setUpData()
+        }
         handleEvents()
         return mView
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && isResumed && mIsVisibleFirstTime) {
+            setUpData()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -123,6 +133,7 @@ class ChatFragment : Fragment(), ChatContract.View, ItemRecyclerViewClickListene
     }
 
     private fun setUpData() {
+        mIsVisibleFirstTime = false
         mPresenter.fetchConversations()
     }
 

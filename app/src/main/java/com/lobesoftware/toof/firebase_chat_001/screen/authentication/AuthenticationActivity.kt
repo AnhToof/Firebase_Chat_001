@@ -23,17 +23,9 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationContract.View 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
-        if (application is MainApplication) {
-            (application as MainApplication).mAppComponent.inject(this)
-        }
-
-        mPresenter = AuthenticationPresenter()
-        mPresenter.apply {
-            setUserRepository(mUserRepository)
-            setView(this@AuthenticationActivity)
-            checkLoggedState()
-        }
-
+        (application as? MainApplication)?.mAppComponent?.inject(this)
+        mPresenter = AuthenticationPresenter(this, mUserRepository)
+        mPresenter.checkLoggedState()
         mNavigator = AuthenticationNavigatorImpl(this)
     }
 

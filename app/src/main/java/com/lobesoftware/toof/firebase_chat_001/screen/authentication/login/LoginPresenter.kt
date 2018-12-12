@@ -6,11 +6,15 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class LoginPresenter : LoginContract.Presenter {
+class LoginPresenter(
+    view: LoginContract.View,
+    validator: Validator,
+    userRepository: UserRepository
+) : LoginContract.Presenter {
 
-    private var mView: LoginContract.View? = null
-    private lateinit var mValidator: Validator
-    private lateinit var mUserRepository: UserRepository
+    private var mView: LoginContract.View? = view
+    private val mValidator = validator
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun setView(view: LoginContract.View) {
@@ -35,9 +39,7 @@ class LoginPresenter : LoginContract.Presenter {
                 view.onInputDataInValid(errorMessageValidate)
                 return
             }
-
             view.showProgressDialog()
-
             val disposable = mUserRepository.loginWithEmailAndPassword(email, password)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -51,14 +53,6 @@ class LoginPresenter : LoginContract.Presenter {
                 })
             mCompositeDisposable.add(disposable)
         }
-    }
-
-    fun setValidator(validator: Validator) {
-        mValidator = validator
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 
     private fun validate(email: String, password: String): ErrorMessageValidate? {

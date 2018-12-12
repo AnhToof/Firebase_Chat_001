@@ -26,7 +26,17 @@ class FriendPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ user ->
-                    view.onFetchFriendRequestSuccess(user)
+                    when (user.action) {
+                        Constant.ACTION_ADD -> {
+                            view.onFriendRequestAdded(user)
+                        }
+                        Constant.ACTION_REMOVE -> {
+                            view.onFriendRequestRemoved(user)
+                        }
+                        Constant.ACTION_CHANGE -> {
+                            view.onFriendRequestChanged(user)
+                        }
+                    }
                 }, {
                     view.onFetchFail(it)
                 })

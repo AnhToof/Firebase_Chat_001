@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.View
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.screen.main.chat.ChatFragment
 import com.lobesoftware.toof.firebase_chat_001.screen.main.friend.FriendFragment
@@ -22,19 +21,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         setSupportActionBar(toolbar)
         title = Page.PAGE_CHAT.title
         setUpViewPager()
         handleEvents()
-    }
-
-    fun showBottomNavigation() {
-        navigation.visibility = View.VISIBLE
-    }
-
-    fun hideBottomNavigation() {
-        navigation.visibility = View.GONE
     }
 
     private fun setUpViewPager() {

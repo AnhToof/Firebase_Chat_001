@@ -52,6 +52,12 @@ class ChatDetailPresenter(
         }
     }
 
+    override fun getCurrentUserId() {
+        handleCheckCurrentUser { view, id ->
+            view.onGetCurrentUserIdSuccess(id)
+        }
+    }
+
     override fun fetchMessages(group: Group) {
         handleCheckCurrentUser { view, id ->
             val groupId = group.id

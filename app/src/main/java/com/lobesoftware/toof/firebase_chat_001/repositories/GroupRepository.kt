@@ -254,8 +254,19 @@ class GroupRepositoryImpl : GroupRepository {
                 childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = null
                 childUpdates["/${Constant.KeyDatabase.Message.MESSAGES}/${group.id}"] = null
             } else {
-                childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}/${Constant.KeyDatabase.Group.MEMBER}/$currentId"] =
-                        null
+                if (group.members.getValue(currentId)) {
+                    childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = null
+                    childUpdates["/${Constant.KeyDatabase.Message.MESSAGES}/${group.id}"] = null
+                    group.members.forEach {
+                        if (it.key != currentId) {
+                            childUpdates["/${Constant.KeyDatabase.User.USER}/${it.key}/${Constant.KeyDatabase.User.GROUP}/${group.id}"] =
+                                    null
+                        }
+                    }
+                } else {
+                    childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}/${Constant.KeyDatabase.Group.MEMBER}/$currentId"] =
+                            null
+                }
             }
             mDatabase.updateChildren(childUpdates)
                 .addOnCompleteListener {

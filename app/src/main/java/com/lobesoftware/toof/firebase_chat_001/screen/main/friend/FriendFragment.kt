@@ -31,6 +31,8 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     private lateinit var mFriendRequestAdapter: FriendRequestAdapter
     private lateinit var mNavigator: FriendNavigator
     private var mFriends = ArrayList<User>()
+    private var mFriendRequest = ArrayList<User>()
+    private var mIsVisibleFirstTime: Boolean = true
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -51,9 +53,18 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         (activity as? MainActivity)?.let {
             mNavigator = FriendNavigatorImpl(it)
         }
-        setUpData()
+        if (userVisibleHint) {
+            setUpData()
+        }
         handleEvents()
         return mView
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && isResumed && mIsVisibleFirstTime) {
+            setUpData()
+        }
     }
 
     override fun onItemClick(view: View, item: User, position: Int) {
@@ -96,8 +107,29 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
         (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
     }
 
-    override fun onFetchFriendRequestSuccess(user: User) {
-        mFriendRequestAdapter.updateData(user)
+    override fun onFriendRequestAdded(user: User) {
+        mFriendRequest.add(user)
+        mFriendRequestAdapter.addFriendRequest(user, mFriendRequest.size)
+    }
+
+    override fun onFriendRequestChanged(user: User) {
+        for ((index, oldUser) in mFriendRequest.withIndex()) {
+            if (oldUser.id == user.id) {
+                mFriendRequest[index] = user
+                mFriendRequestAdapter.changeFriendRequest(user, index)
+                break
+            }
+        }
+    }
+
+    override fun onFriendRequestRemoved(user: User) {
+        for ((index, oldUser) in mFriendRequest.withIndex()) {
+            if (oldUser.id == user.id) {
+                mFriendRequest.removeAt(index)
+                mFriendRequestAdapter.removeFriendRequest(index)
+                break
+            }
+        }
     }
 
     override fun onFriendAdded(user: User) {
@@ -140,6 +172,7 @@ class FriendFragment : Fragment(), FriendContract.View, ItemRecyclerViewClickLis
     }
 
     private fun setUpData() {
+        mIsVisibleFirstTime = false
         mPresenter.fetchFriend()
         mPresenter.fetchFriendRequest()
     }

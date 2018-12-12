@@ -119,7 +119,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
     }
 
     override fun onCreateGroupFail(error: Throwable) {
-        if (error == NullPointerException()) {
+        if (error is NullPointerException) {
             (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
         } else {
             (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
@@ -185,7 +185,7 @@ class CreateGroupFragment : Fragment(), CreateGroupContact.View, ItemRecyclerVie
             )
             mMembers.forEach { user ->
                 user.id?.let { id ->
-                    group.members[id] = true
+                    group.members[id] = false
                 }
             }
             if (mScreenType == Constant.ScreenType.ADD) {

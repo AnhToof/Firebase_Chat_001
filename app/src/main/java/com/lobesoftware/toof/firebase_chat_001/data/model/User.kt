@@ -9,6 +9,5 @@ data class User(
     var email: String? = null,
     var fullName: String? = null,
     var phone: String? = null,
-    var action: String? = null,
-    var position: Int? = null
+    var action: String? = null
 ) : Parcelable

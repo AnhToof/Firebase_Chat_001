@@ -16,6 +16,8 @@ interface ChatDetailContract {
 
         fun onCheckCurrentUserFail()
 
+        fun onGetCurrentUserIdSuccess(userId: String)
+
         fun onFetchGroupInformationSuccess(group: Group)
 
         fun onFetchFail(error: Throwable)
@@ -32,6 +34,8 @@ interface ChatDetailContract {
     }
 
     interface Presenter : BasePresenter<View> {
+
+        fun getCurrentUserId()
 
         fun fetchGroupInformation(groupId: String)
 

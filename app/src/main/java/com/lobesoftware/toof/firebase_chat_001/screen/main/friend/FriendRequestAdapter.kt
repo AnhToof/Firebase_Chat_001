@@ -12,7 +12,6 @@ import android.widget.TextView
 import com.lobesoftware.toof.firebase_chat_001.R
 import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.extension.loadUrlWithCircleCropTransform
-import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
 import kotlinx.android.synthetic.main.item_user.view.*
 
@@ -32,32 +31,19 @@ class FriendRequestAdapter(private val context: Context) : RecyclerView.Adapter<
         viewHolder.bindViewData(mUsers[position])
     }
 
-    fun updateData(user: User) {
-        when (user.action) {
-            Constant.ACTION_ADD -> {
-                user.position = mUsers.size
-                mUsers.add(user)
-                notifyItemInserted(mUsers.size)
-            }
-            Constant.ACTION_REMOVE -> {
-                for ((index, oldUser) in mUsers.withIndex()) {
-                    if (oldUser.id == user.id) {
-                        mUsers.removeAt(index)
-                        notifyItemRemoved(index)
-                        break
-                    }
-                }
-            }
-            Constant.ACTION_CHANGE -> {
-                for ((index, oldUser) in mUsers.withIndex()) {
-                    if (oldUser.id == user.id) {
-                        mUsers[index] = user
-                        notifyItemChanged(index)
-                        break
-                    }
-                }
-            }
-        }
+    fun addFriendRequest(user: User, position: Int) {
+        mUsers.add(user)
+        notifyItemInserted(position)
+    }
+
+    fun removeFriendRequest(position: Int) {
+        mUsers.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun changeFriendRequest(user: User, position: Int) {
+        mUsers[position] = user
+        notifyItemChanged(position)
     }
 
     fun setItemRecyclerViewListener(listener: ItemRecyclerViewClickListener<User>?) {

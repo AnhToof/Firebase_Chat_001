@@ -7,11 +7,15 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class RegisterPresenter : RegisterContract.Presenter {
+class RegisterPresenter(
+    view: RegisterContract.View,
+    validator: Validator,
+    userRepository: UserRepository
+) : RegisterContract.Presenter {
 
-    private var mView: RegisterContract.View? = null
-    private lateinit var mValidator: Validator
-    private lateinit var mUserRepository: UserRepository
+    private var mView: RegisterContract.View? = view
+    private val mValidator = validator
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun setView(view: RegisterContract.View) {
@@ -50,14 +54,6 @@ class RegisterPresenter : RegisterContract.Presenter {
                 })
             mCompositeDisposable.add(disposable)
         }
-    }
-
-    fun setValidator(validator: Validator) {
-        mValidator = validator
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 
     private fun validate(email: String, password: String, fullName: String): ErrorMessageValidate? {
