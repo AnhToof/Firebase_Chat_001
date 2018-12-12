@@ -16,7 +16,10 @@ import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.Toolbar
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -48,7 +51,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     private lateinit var mProgressDialog: ProgressDialog
     private val mMessages = ArrayList<Message>()
     private var mGroup: Group? = null
-    private var mCurrentUserId: String? = null
 
     enum class GroupType(val value: Boolean) {
         PRIVATE(false),
@@ -73,16 +75,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         setUpData()
         handleEvents()
         return mView
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        mGroup?.members?.let {
-            mCurrentUserId?.let { id ->
-                if (!it.getValue(id)) {
-                    menu.findItem(R.id.action_edit_group).isVisible = false
-                }
-            }
-        }
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -125,7 +117,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     }
 
     override fun onGetCurrentUserIdSuccess(userId: String) {
-        mCurrentUserId = userId
+        hideEditOption(userId)
     }
 
     override fun onCheckCurrentUserFail() {
@@ -219,6 +211,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
             if (it.type == GroupType.GROUP.value) {
                 mView.toolbar.inflateMenu(R.menu.menu_option_chat_detail)
             }
+            mPresenter.getCurrentUserId()
         }
         setUpRecyclerView()
     }
@@ -311,6 +304,14 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         val alert = dialogBuilder.create()
         alert.setTitle(getString(R.string.app_name))
         alert.show()
+    }
+
+    private fun hideEditOption(userId: String) {
+        mGroup?.members?.let {
+            if (!it.getValue(userId)) {
+                mView.toolbar.menu.findItem(R.id.action_edit_group).isVisible = false
+            }
+        }
     }
 
     companion object {

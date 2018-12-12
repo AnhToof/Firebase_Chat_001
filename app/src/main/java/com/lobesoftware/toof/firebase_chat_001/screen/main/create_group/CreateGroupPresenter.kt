@@ -79,6 +79,7 @@ class CreateGroupPresenter(
                     view.onCreateGroupFail(NullPointerException())
                 } else {
                     view.showProgressDialog()
+                    group.members[id] = true
                     val disposable = mGroupRepository.updateGroup(id, group)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
