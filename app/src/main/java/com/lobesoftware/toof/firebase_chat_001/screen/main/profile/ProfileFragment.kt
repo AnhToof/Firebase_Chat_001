@@ -22,6 +22,7 @@ class ProfileFragment : Fragment(), ProfileContract.View {
     private lateinit var mPresenter: ProfilePresenter
     private lateinit var mView: View
     private lateinit var mNavigator: ProfileNavigator
+    private var mIsVisibleFirstTime: Boolean = true
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -40,9 +41,18 @@ class ProfileFragment : Fragment(), ProfileContract.View {
         (activity as? MainActivity)?.let {
             mNavigator = ProfileNavigatorImpl(it)
         }
-        handleData()
+        if (userVisibleHint) {
+            handleData()
+        }
         handleEvents()
         return mView
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && isResumed && mIsVisibleFirstTime) {
+            handleData()
+        }
     }
 
     override fun onStop() {
@@ -78,6 +88,7 @@ class ProfileFragment : Fragment(), ProfileContract.View {
     }
 
     private fun handleData() {
+        mIsVisibleFirstTime = false
         mPresenter.fetchInformation()
     }
 

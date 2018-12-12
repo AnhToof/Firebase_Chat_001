@@ -41,22 +41,12 @@ class LoginFragment : Fragment(), LoginContract.View {
         savedInstanceState: Bundle?
     ): View? {
         mView = inflater.inflate(R.layout.fragment_login, container, false)
-
         setUpProgressDialog()
-
-        mPresenter = LoginPresenter()
-        mPresenter.apply {
-            setValidator(mValidator)
-            setUserRepository(mUserRepository)
-            setView(this@LoginFragment)
-        }
-
-        if (activity is AuthenticationActivity) {
+        mPresenter = LoginPresenter(this, mValidator, mUserRepository)
+        (activity as? AuthenticationActivity)?.let {
             mNavigator = LoginNavigatorImpl(activity as AppCompatActivity)
         }
-
         handleEvents()
-
         return mView
     }
 
@@ -90,9 +80,7 @@ class LoginFragment : Fragment(), LoginContract.View {
     }
 
     override fun onLoginFail(error: String) {
-        if (activity is AuthenticationActivity) {
-            (activity as AuthenticationActivity).toast(error) //Need cast to call toast
-        }
+        (activity as? AuthenticationActivity)?.toast(error)
     }
 
     private fun handleEvents() {

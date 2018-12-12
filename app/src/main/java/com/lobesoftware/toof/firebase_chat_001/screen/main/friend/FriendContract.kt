@@ -7,7 +7,11 @@ interface FriendContract {
 
     interface View {
 
-        fun onFetchFriendRequestSuccess(user: User)
+        fun onFriendRequestRemoved(user: User)
+
+        fun onFriendRequestAdded(user: User)
+
+        fun onFriendRequestChanged(user: User)
 
         fun onFriendRemoved(user: User)
 

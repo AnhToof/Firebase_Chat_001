@@ -29,12 +29,6 @@ class RegisterFragment : Fragment(), RegisterContract.View {
     private lateinit var mProgressDialog: ProgressDialog
     private lateinit var mNavigator: RegisterNavigator
 
-    companion object {
-        fun getInstance(): RegisterFragment {
-            return RegisterFragment()
-        }
-    }
-
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         val app = activity?.application
@@ -48,22 +42,12 @@ class RegisterFragment : Fragment(), RegisterContract.View {
         savedInstanceState: Bundle?
     ): View? {
         mView = inflater.inflate(R.layout.fragment_register, container, false)
-
         setUpProgressDialog()
-
-        mPresenter = RegisterPresenter()
-        mPresenter.apply {
-            setValidator(mValidator)
-            setUserRepository(mUserRepository)
-            setView(this@RegisterFragment)
-        }
-
-        if (activity is AuthenticationActivity) {
+        mPresenter = RegisterPresenter(this, mValidator, mUserRepository)
+        (activity as? AuthenticationActivity)?.let {
             mNavigator = RegisterNavigatorImpl(activity as AppCompatActivity)
         }
-
         handleEvents()
-
         return mView
     }
 
@@ -101,9 +85,7 @@ class RegisterFragment : Fragment(), RegisterContract.View {
     }
 
     override fun onRegisterFail(error: String) {
-        if (activity is AuthenticationActivity) {
-            (activity as AuthenticationActivity).toast(error)
-        }
+        (activity as? AuthenticationActivity)?.toast(error)
     }
 
     private fun setUpProgressDialog() {
@@ -122,6 +104,12 @@ class RegisterFragment : Fragment(), RegisterContract.View {
                 user,
                 mView.edit_password.text.toString()
             )
+        }
+    }
+
+    companion object {
+        fun getInstance(): RegisterFragment {
+            return RegisterFragment()
         }
     }
 }

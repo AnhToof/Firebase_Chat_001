@@ -5,10 +5,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class AuthenticationPresenter : AuthenticationContract.Presenter {
+class AuthenticationPresenter(
+    view: AuthenticationContract.View,
+    userRepository: UserRepository
+) : AuthenticationContract.Presenter {
 
-    private var mView: AuthenticationContract.View? = null
-    private lateinit var mUserRepository: UserRepository
+    private var mView: AuthenticationContract.View? = view
+    private val mUserRepository = userRepository
     private val mCompositeDisposable = CompositeDisposable()
 
     override fun checkLoggedState() {
@@ -42,9 +45,5 @@ class AuthenticationPresenter : AuthenticationContract.Presenter {
 
     override fun onDestroy() {
         mView = null
-    }
-
-    fun setUserRepository(userRepository: UserRepository) {
-        mUserRepository = userRepository
     }
 }

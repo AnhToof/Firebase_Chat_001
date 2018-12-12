@@ -16,10 +16,7 @@ import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.Toolbar
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import com.lobesoftware.toof.firebase_chat_001.MainApplication
 import com.lobesoftware.toof.firebase_chat_001.R
@@ -51,6 +48,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     private lateinit var mProgressDialog: ProgressDialog
     private val mMessages = ArrayList<Message>()
     private var mGroup: Group? = null
+    private var mCurrentUserId: String? = null
 
     enum class GroupType(val value: Boolean) {
         PRIVATE(false),
@@ -75,6 +73,16 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         setUpData()
         handleEvents()
         return mView
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        mGroup?.members?.let {
+            mCurrentUserId?.let { id ->
+                if (!it.getValue(id)) {
+                    menu.findItem(R.id.action_edit_group).isVisible = false
+                }
+            }
+        }
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -116,6 +124,10 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         super.onDestroy()
     }
 
+    override fun onGetCurrentUserIdSuccess(userId: String) {
+        mCurrentUserId = userId
+    }
+
     override fun onCheckCurrentUserFail() {
         (activity as? MainActivity)?.toast(getString(R.string.msg_session_expired), Toast.LENGTH_LONG)
         mNavigator.goToAuthenticationScreen()
@@ -126,7 +138,7 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     }
 
     override fun onFetchFail(error: Throwable) {
-        if (error == NullPointerException()) {
+        if (error is NullPointerException) {
             (activity as? MainActivity)?.toast(getString(R.string.msg_error_something_wrong), Toast.LENGTH_LONG)
         } else {
             (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
