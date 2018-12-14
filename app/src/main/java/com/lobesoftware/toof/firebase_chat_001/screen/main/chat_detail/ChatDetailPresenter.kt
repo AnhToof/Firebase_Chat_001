@@ -3,10 +3,10 @@ package com.lobesoftware.toof.firebase_chat_001.screen.main.chat_detail
 import android.net.Uri
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.data.model.Message
+import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.repositories.GroupRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.MessageRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
-import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -38,13 +38,22 @@ class ChatDetailPresenter(
         }
     }
 
-    override fun fetchUsersInGroup(group: Group) {
+    override fun getCurrentUserId() {
         handleCheckCurrentUser { view, id ->
-            val disposable = mGroupRepository.fetchUsersInGroup(id, group)
+            view.onGetCurrentUserIdSuccess(id)
+        }
+    }
+
+    override fun fetchLastMessage(groupId: String, users: List<User>) {
+        handleCheckCurrentUser { view, id ->
+            val disposable = mMessageRepository.fetchLastMessage(id, groupId)
+                .flatMapSingle {
+                    mMessageRepository.fetchUserWithMessage(it, users)
+                }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    view.onFetchUsersInGroupSuccess(it)
+                    view.onMessageAdded(it)
                 }, {
                     view.onFetchFail(it)
                 })
@@ -52,38 +61,47 @@ class ChatDetailPresenter(
         }
     }
 
-    override fun getCurrentUserId() {
+    override fun fetchPreviousMessages(groupId: String, lastMessageId: String, users: List<User>) {
         handleCheckCurrentUser { view, id ->
-            view.onGetCurrentUserIdSuccess(id)
+            val disposable = mMessageRepository.fetchPreviousMessage(id, groupId, lastMessageId)
+                .toObservable()
+                .flatMapIterable {
+                    it
+                }
+                .flatMapSingle {
+                    mMessageRepository.fetchUserWithMessage(it, users)
+                }
+                .toList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    view.onFetchPreviousMessagesSuccess(it)
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
-    override fun fetchMessages(group: Group) {
+    override fun fetchNextMessages(groupId: String, firstMessageId: String, users: List<User>) {
         handleCheckCurrentUser { view, id ->
-            val groupId = group.id
-            if (groupId == null) {
-                view.onFetchFail(NullPointerException())
-            } else {
-                val disposable = mMessageRepository.fetchMessages(id, groupId)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        when (it.action) {
-                            Constant.ACTION_ADD -> {
-                                view.onMessageAdded(it)
-                            }
-                            Constant.ACTION_CHANGE -> {
-                                TODO("FUNCTION EDIT MESSAGE")
-                            }
-                            Constant.ACTION_REMOVE -> {
-                                TODO("FUNCTION DELETE MESSAGE")
-                            }
-                        }
-                    }, {
-                        view.onFetchFail(it)
-                    })
-                mCompositeDisposable.add(disposable)
-            }
+            val disposable = mMessageRepository.fetchNextMessage(id, groupId, firstMessageId)
+                .toObservable()
+                .flatMapIterable {
+                    it
+                }
+                .flatMapSingle {
+                    mMessageRepository.fetchUserWithMessage(it, users)
+                }
+                .toList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    view.onFetchNextMessagesSuccess(it)
+                }, {
+                    view.onFetchFail(it)
+                })
+            mCompositeDisposable.add(disposable)
         }
     }
 
@@ -153,10 +171,10 @@ class ChatDetailPresenter(
     }
 
     override fun onStop() {
-        mCompositeDisposable.clear()
     }
 
     override fun onDestroy() {
+        mCompositeDisposable.clear()
         mView = null
     }
 

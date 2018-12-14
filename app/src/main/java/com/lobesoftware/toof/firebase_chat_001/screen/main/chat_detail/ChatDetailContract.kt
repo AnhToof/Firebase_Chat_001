@@ -22,8 +22,6 @@ interface ChatDetailContract {
 
         fun onFetchFail(error: Throwable)
 
-        fun onFetchUsersInGroupSuccess(users: List<User>)
-
         fun onMessageAdded(message: Message)
 
         fun onLeaveGroupSuccess()
@@ -31,6 +29,10 @@ interface ChatDetailContract {
         fun onUploadSuccess(uri: Uri)
 
         fun onUploadFail(error: Throwable)
+
+        fun onFetchPreviousMessagesSuccess(messages: List<Message>)
+
+        fun onFetchNextMessagesSuccess(messages: List<Message>)
     }
 
     interface Presenter : BasePresenter<View> {
@@ -39,9 +41,11 @@ interface ChatDetailContract {
 
         fun fetchGroupInformation(groupId: String)
 
-        fun fetchUsersInGroup(group: Group)
+        fun fetchLastMessage(groupId: String, users: List<User>)
 
-        fun fetchMessages(group: Group)
+        fun fetchPreviousMessages(groupId: String, lastMessageId: String, users: List<User>)
+
+        fun fetchNextMessages(groupId: String, firstMessageId: String, users: List<User>)
 
         fun sendMessage(group: Group, message: Message)
 

@@ -16,6 +16,8 @@ object Constant {
     const val ACTION_SENT = "Sent"
     const val ACTION_RECEIVED = "Received"
     const val ACTION_FRIEND = "Friend"
+    const val LIMIT_MESSAGES = 11
+    const val LIMIT_LAST_MESSAGE = 1
 
     object KeyDatabase {
         object User {

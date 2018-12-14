@@ -32,11 +32,13 @@ import com.lobesoftware.toof.firebase_chat_001.repositories.MessageRepository
 import com.lobesoftware.toof.firebase_chat_001.repositories.UserRepository
 import com.lobesoftware.toof.firebase_chat_001.screen.main.MainActivity
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
-import kotlinx.android.synthetic.main.fragment_chat_detail.*
+import com.lobesoftware.toof.firebase_chat_001.utils.ItemRecyclerViewClickListener
+import com.lobesoftware.toof.firebase_chat_001.utils.LoadMoreListener
 import kotlinx.android.synthetic.main.fragment_chat_detail.view.*
 import javax.inject.Inject
 
-class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuItemClickListener {
+class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuItemClickListener, LoadMoreListener,
+    ItemRecyclerViewClickListener<Message> {
 
     @Inject
     internal lateinit var mUserRepository: UserRepository
@@ -50,7 +52,10 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     private lateinit var mAdapter: ChatDetailAdapter
     private lateinit var mProgressDialog: ProgressDialog
     private val mMessages = ArrayList<Message>()
+    private val mUsers = ArrayList<User>()
     private var mGroup: Group? = null
+    private var mCurrentUserId: String? = null
+    private var mLoadFirstTime: Boolean = true
 
     enum class GroupType(val value: Boolean) {
         PRIVATE(false),
@@ -72,7 +77,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         mView = inflater.inflate(R.layout.fragment_chat_detail, container, false)
         mPresenter = ChatDetailPresenter(this, mUserRepository, mGroupRepository, mMessageRepository)
         initViews()
-        setUpData()
         handleEvents()
         return mView
     }
@@ -100,15 +104,8 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
     }
 
     override fun onStart() {
-        mGroup?.let {
-            mPresenter.fetchMessages(it)
-        }
+        setUpData()
         super.onStart()
-    }
-
-    override fun onStop() {
-        mPresenter.onStop()
-        super.onStop()
     }
 
     override fun onDestroy() {
@@ -118,6 +115,8 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
 
     override fun onGetCurrentUserIdSuccess(userId: String) {
         hideEditOption(userId)
+        mAdapter.setCurrentUserId(userId)
+        mCurrentUserId = userId
     }
 
     override fun onCheckCurrentUserFail() {
@@ -127,6 +126,9 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
 
     override fun onFetchGroupInformationSuccess(group: Group) {
         mGroup = group
+        mGroup?.id?.let {
+            mPresenter.fetchLastMessage(it, mUsers)
+        }
     }
 
     override fun onFetchFail(error: Throwable) {
@@ -135,10 +137,6 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         } else {
             (activity as? MainActivity)?.toast(error.localizedMessage, Toast.LENGTH_LONG)
         }
-    }
-
-    override fun onFetchUsersInGroupSuccess(users: List<User>) {
-        mAdapter.setListUsers(users)
     }
 
     override fun onLeaveGroupSuccess() {
@@ -161,9 +159,61 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
 
     override fun onMessageAdded(message: Message) {
         if (!mMessages.contains(message)) {
-            mMessages.add(message)
-            mAdapter.addMessage(message)
-            recycler_view_chat.scrollToPosition(0)
+            if (mAdapter.getFirstVisibleItemPosition() <= mAdapter.getLastVisibleItemPosition()) {
+                mMessages.add(0, message)
+                mAdapter.addMessage(message)
+                message.user?.let {
+                    mUsers.add(it)
+                }
+                mView.recycler_view_chat.scrollToPosition(0)
+            } else {
+                mAdapter.setLoadingAtBottom(false)
+            }
+        }
+    }
+
+    override fun onFetchPreviousMessagesSuccess(messages: List<Message>) {
+        mAdapter.removeLoadingAtTop()
+        if (!messages.isEmpty()) {
+            mAdapter.addMessagesAtTop(messages)
+            mMessages.addAll(messages)
+            messages.forEach {
+                it.user?.let { user ->
+                    if (!mUsers.contains(user)) {
+                        mUsers.add(user)
+                    }
+                }
+            }
+            if (mLoadFirstTime) {
+                mView.recycler_view_chat.scrollToPosition(0)
+                mLoadFirstTime = false
+            }
+            if (messages.size + 1 < Constant.LIMIT_MESSAGES) {
+                mAdapter.setLoadingAtTop(true)
+            } else {
+                mAdapter.setLoadingAtTop(false)
+            }
+        }
+    }
+
+    override fun onFetchNextMessagesSuccess(messages: List<Message>) {
+        mAdapter.removeLoadingAtBottom()
+        if (!mMessages.isEmpty()) {
+            mAdapter.addMessagesAtBottom(messages)
+            messages.forEach {
+                mMessages.add(0, it)
+                it.user?.let { user ->
+                    if (!mUsers.contains(user)) {
+                        mUsers.add(user)
+                    }
+                }
+            }
+            mView.recycler_view_chat.scrollToPosition(0)
+            if (messages.size + 1 < Constant.LIMIT_MESSAGES) {
+                mAdapter.setLoadingAtBottom(true)
+            } else {
+                mAdapter.setLoadingAtBottom(false)
+            }
         }
     }
 
@@ -198,12 +248,49 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
         }
     }
 
+    override fun onLoadMoreTop() {
+        mAdapter.addLoadingAtTop()
+        mGroup?.let { group ->
+            val messageId = mMessages.last().id
+            val groupId = group.id
+            if (messageId != null && groupId != null) {
+                mPresenter.fetchPreviousMessages(groupId, messageId, mUsers)
+            }
+        }
+    }
+
+    override fun onLoadMoreBottom() {
+        mAdapter.addLoadingAtBottom()
+        mGroup?.let { group ->
+            val messageId = mMessages.last().id
+            val groupId = group.id
+            if (messageId != null && groupId != null) {
+                mPresenter.fetchNextMessages(groupId, messageId, mUsers)
+            }
+        }
+    }
+
+    override fun onItemClick(view: View, item: Message, position: Int) {
+        when (view.id) {
+            R.id.image_message -> {
+                item.content?.let {
+                    mNavigator.openImage(it)
+                }
+            }
+            R.id.image_avatar -> {
+                item.user?.let {
+                    mNavigator.goToUserDetailScreen(it)
+                }
+            }
+        }
+    }
+
     private fun initViews() {
         (activity as? MainActivity)?.let {
             arguments?.let { args ->
                 mGroup = args.getParcelable(ARGUMENT_GROUP)
                 mView.toolbar.title =
-                        "${args[ARGUMENT_TITLE]}"
+                    "${args[ARGUMENT_TITLE]}"
             }
             mNavigator = ChatDetailNavigatorImpl(it)
         }
@@ -221,19 +308,20 @@ class ChatDetailFragment : Fragment(), ChatDetailContract.View, Toolbar.OnMenuIt
             it.id?.let { id ->
                 mPresenter.fetchGroupInformation(id)
             }
-            mPresenter.fetchUsersInGroup(it)
         }
     }
 
     private fun setUpRecyclerView() {
         context?.let {
-            mAdapter = ChatDetailAdapter(it)
             mView.recycler_view_chat.apply {
                 val layout = LinearLayoutManager(it)
                 layout.reverseLayout = true
                 layoutManager = layout
                 itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(it, layout.orientation))
+                mAdapter = ChatDetailAdapter(it, this)
+                mAdapter.setLoadMore(this@ChatDetailFragment)
+                mAdapter.setItemRecyclerViewClickListener(this@ChatDetailFragment)
                 adapter = mAdapter
             }
         }

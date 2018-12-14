@@ -1,13 +1,11 @@
 package com.lobesoftware.toof.firebase_chat_001.repositories
 
 import android.net.Uri
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.lobesoftware.toof.firebase_chat_001.data.model.Group
 import com.lobesoftware.toof.firebase_chat_001.data.model.Message
+import com.lobesoftware.toof.firebase_chat_001.data.model.User
 import com.lobesoftware.toof.firebase_chat_001.utils.Constant
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -15,11 +13,17 @@ import io.reactivex.Single
 
 interface MessageRepository {
 
-    fun fetchMessages(currentId: String, groupId: String): Observable<Message>
+    fun fetchLastMessage(currentId: String, groupId: String): Observable<Message>
+
+    fun fetchPreviousMessage(currentId: String, groupId: String, fromMessageId: String): Single<List<Message>>
+
+    fun fetchNextMessage(currentId: String, groupId: String, fromMessageId: String): Single<List<Message>>
 
     fun sendMessage(currentId: String, group: Group, message: Message): Completable
 
     fun uploadImage(uri: Uri): Single<Uri>
+
+    fun fetchUserWithMessage(message: Message, users: List<User>): Single<Message>
 }
 
 class MessageRepositoryImpl : MessageRepository {
@@ -32,9 +36,10 @@ class MessageRepositoryImpl : MessageRepository {
         GROUP(true)
     }
 
-    override fun fetchMessages(currentId: String, groupId: String): Observable<Message> {
+    override fun fetchLastMessage(currentId: String, groupId: String): Observable<Message> {
         return Observable.create { emitter ->
             mDatabase.child(Constant.KeyDatabase.Message.MESSAGES).child(groupId)
+                .limitToLast(Constant.LIMIT_LAST_MESSAGE)
                 .addChildEventListener(object : ChildEventListener {
                     override fun onCancelled(dataSnapshot: DatabaseError) {
                         emitter.onError(dataSnapshot.toException())
@@ -59,9 +64,89 @@ class MessageRepositoryImpl : MessageRepository {
         }
     }
 
+    override fun fetchUserWithMessage(message: Message, users: List<User>): Single<Message> {
+        return Single.create { emitter ->
+            message.from_user?.let {
+                val userMatch = users.find { user ->
+                    user.id == it
+                }
+                if (userMatch != null) {
+                    message.user = userMatch
+                    emitter.onSuccess(message)
+                } else {
+                    mDatabase.child(Constant.KeyDatabase.User.USER).child(it)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onCancelled(dataSnapshot: DatabaseError) {
+                                emitter.onError(dataSnapshot.toException())
+                            }
+
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                dataSnapshot.getValue(User::class.java)?.let { user ->
+                                    message.user = user
+                                    emitter.onSuccess(message)
+                                }
+                            }
+                        })
+                }
+            }
+        }
+    }
+
+    override fun fetchPreviousMessage(
+        currentId: String,
+        groupId: String,
+        fromMessageId: String
+    ): Single<List<Message>> {
+        return Single.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Message.MESSAGES).child(groupId).orderByKey().endAt(fromMessageId)
+                .limitToLast(Constant.LIMIT_MESSAGES)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val messages = mutableListOf<Message>()
+                        dataSnapshot.children.forEach {
+                            if (it.key != fromMessageId) {
+                                it.getValue(Message::class.java)?.let { message ->
+                                    messages.add(0, message)
+                                }
+                            }
+                        }
+                        emitter.onSuccess(messages)
+                    }
+                })
+        }
+    }
+
+    override fun fetchNextMessage(currentId: String, groupId: String, fromMessageId: String): Single<List<Message>> {
+        return Single.create { emitter ->
+            mDatabase.child(Constant.KeyDatabase.Message.MESSAGES).child(groupId).orderByKey().startAt(fromMessageId)
+                .limitToFirst(Constant.LIMIT_MESSAGES)
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onCancelled(dataSnapshot: DatabaseError) {
+                        emitter.onError(dataSnapshot.toException())
+                    }
+
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val messages = mutableListOf<Message>()
+                        dataSnapshot.children.forEach {
+                            if (it.key != fromMessageId) {
+                                it.getValue(Message::class.java)?.let { message ->
+                                    messages.add(message)
+                                }
+                            }
+                        }
+                        emitter.onSuccess(messages)
+                    }
+                })
+        }
+    }
+
     override fun sendMessage(currentId: String, group: Group, message: Message): Completable {
         return Completable.create { emitter ->
-            group.id?.let {id ->
+            group.id?.let { id ->
                 mDatabase.child(Constant.KeyDatabase.Message.MESSAGES).child(id).push().key?.let { messageId ->
                     message.id = messageId
                     message.from_user = currentId
@@ -87,7 +172,7 @@ class MessageRepositoryImpl : MessageRepository {
 
     override fun uploadImage(uri: Uri): Single<Uri> {
         return Single.create { emitter ->
-            uri.lastPathSegment?.let {lastPathSegment ->
+            uri.lastPathSegment?.let { lastPathSegment ->
                 mFirebaseStorage.child(Constant.KeyStorage.IMAGES).child(lastPathSegment).putFile(uri)
                     .addOnFailureListener {
                         emitter.onError(it)

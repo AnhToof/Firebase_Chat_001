@@ -145,6 +145,9 @@ class GroupRepositoryImpl : GroupRepository {
         return Completable.create { emitter ->
             val childUpdates = HashMap<String, Any?>()
             childUpdates["/${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = group
+            group.members.forEach {
+                childUpdates["/${Constant.KeyDatabase.User.USER}/${it.key}/${Constant.KeyDatabase.User.GROUP}/${group.id}"] = true
+            }
             mDatabase.updateChildren(childUpdates)
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
@@ -249,7 +252,7 @@ class GroupRepositoryImpl : GroupRepository {
         return Completable.create { emitter ->
             val childUpdates = HashMap<String, Any?>()
             childUpdates["/${Constant.KeyDatabase.User.USER}/$currentId/${Constant.KeyDatabase.User.GROUP}/${group.id}"] =
-                    null
+                null
             if (group.members.keys.size == 1) {
                 childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}"] = null
                 childUpdates["/${Constant.KeyDatabase.Message.MESSAGES}/${group.id}"] = null
@@ -260,12 +263,12 @@ class GroupRepositoryImpl : GroupRepository {
                     group.members.forEach {
                         if (it.key != currentId) {
                             childUpdates["/${Constant.KeyDatabase.User.USER}/${it.key}/${Constant.KeyDatabase.User.GROUP}/${group.id}"] =
-                                    null
+                                null
                         }
                     }
                 } else {
                     childUpdates["${Constant.KeyDatabase.Group.GROUP}/${group.id}/${Constant.KeyDatabase.Group.MEMBER}/$currentId"] =
-                            null
+                        null
                 }
             }
             mDatabase.updateChildren(childUpdates)

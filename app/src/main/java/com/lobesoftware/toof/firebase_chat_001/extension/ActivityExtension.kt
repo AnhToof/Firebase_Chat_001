@@ -29,7 +29,7 @@ fun AppCompatActivity.replaceFragment(
     currentFragment?.let {
         fragment.setTargetFragment(currentFragment, Constant.RequestCode.REQUEST_CODE)
     }
-    transaction.replace(containerId, fragment, tag)
+    transaction.add(containerId, fragment, tag)
     transaction.commitAllowingStateLoss()
     fragmentManager.executePendingTransactions()
 }
